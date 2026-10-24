@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/core/">
+    <Project Path="core/WeaponBuilder.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/WeaponBuilder.Core.Tests/WeaponBuilder.Core.Tests.csproj" />
+  </Folder>
+  <Project Path="WeaponBuilder.csproj" />
+</Solution>
