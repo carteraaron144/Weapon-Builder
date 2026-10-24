@@ -14,6 +14,9 @@ static class TestParts
         params SocketDef[] sockets) =>
         new(id, id, "Test", tags, length, width, "steel", sockets, Array.Empty<Primitive>(), null);
 
+    /// Steel, iron and (hidden) leather.
+    public static readonly MaterialLibrary Materials = new([Mat("steel"), Mat("iron"), Mat("leather", "leather") with { Hidden = true }]);
+
     /// A plain material for tests.
     public static MaterialDef Mat(string id, params string[] tags) =>
         new(id, id, new Vector3(0.5f), 0.5f, 0.5f, tags.Length > 0 ? tags : ["metal"], false);

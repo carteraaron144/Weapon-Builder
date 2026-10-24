@@ -28,8 +28,8 @@ public static class WeaponJson
 
     /// Reads a weapon, keeping only what still fits the library. Parts no longer known, and parts on sockets that
     /// no longer exist or accept them, are dropped with their subtree and a warning. An unknown root, or a file that
-    /// doesn't parse, falls back to a bare defaultRootId handle.
-    public static Weapon Read(string json, PartLibrary lib, string defaultRootId, out List<string> warnings)
+    /// doesn't parse, falls back to a bare defaultRootId handle. Unknown materials fall back to the part's default, with a warning.
+    public static Weapon Read(string json, PartLibrary lib, MaterialLibrary materials, string defaultRootId, out List<string> warnings)
     {
         warnings = new();
         FileDto? file;
@@ -47,7 +47,7 @@ public static class WeaponJson
         WeaponPart root;
         if (rootDto?.Part != null && lib.TryGet(rootDto.Part, out var rootDef) && rootDef.Tags.Contains(WeaponEditor.HandleTag))
         {
-            root = FromDto(rootDto, rootDef);
+            root = FromDto(rootDto, rootDef, materials, warnings);
         }
         else
         {
@@ -56,11 +56,12 @@ public static class WeaponJson
             root = new WeaponPart(defaultRootId, lib.Get(defaultRootId).DefaultMaterial);
         }
         if (rootDto?.Children != null)
-            AddChildren(root, rootDto.Children, lib, warnings);
+            AddChildren(root, rootDto.Children, lib, materials, warnings);
         return new Weapon(string.IsNullOrWhiteSpace(file?.Name) ? DefaultName : file.Name, root);
     }
 
-    static void AddChildren(WeaponPart parent, Dictionary<string, NodeDto?> children, PartLibrary lib, List<string> warnings)
+    static void AddChildren(WeaponPart parent, Dictionary<string, NodeDto?> children, PartLibrary lib,
+        MaterialLibrary materials, List<string> warnings)
     {
         var parentDef = lib.Get(parent.PartId);
         foreach (var (socketName, dto) in children)
@@ -81,16 +82,25 @@ public static class WeaponJson
                 warnings.Add($"'{dto.Part}' no longer fits '{parent.PartId}.{socketName}' and was dropped");
                 continue;
             }
-            var part = FromDto(dto, def);
+            var part = FromDto(dto, def, materials, warnings);
             part.RotationDegrees = Fitting.SnapRotation(part.RotationDegrees, socket.RotationStepDegrees);
             parent.Children[socketName] = part;
             if (dto.Children != null)
-                AddChildren(part, dto.Children, lib, warnings);
+                AddChildren(part, dto.Children, lib, materials, warnings);
         }
     }
 
-    static WeaponPart FromDto(NodeDto dto, PartDef def) =>
-        new(def.Id, dto.Material ?? def.DefaultMaterial) { RotationDegrees = dto.Rotation };
+    /// A part from its saved form. A material that's unknown or no longer allowed becomes the part's default.
+    static WeaponPart FromDto(NodeDto dto, PartDef def, MaterialLibrary materials, List<string> warnings)
+    {
+        var material = dto.Material ?? def.DefaultMaterial;
+        if (dto.Material != null && !(materials.TryGet(dto.Material, out var m) && Fitting.AllowsMaterial(def, m)))
+        {
+            warnings.Add($"Unknown material '{dto.Material}' on '{def.Id}', using '{def.DefaultMaterial}'");
+            material = def.DefaultMaterial;
+        }
+        return new WeaponPart(def.Id, material) { RotationDegrees = dto.Rotation };
+    }
 
     static NodeDto ToDto(WeaponPart p) => new()
     {
