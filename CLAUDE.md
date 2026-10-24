@@ -21,7 +21,7 @@ The design notes and plans are an Obsidian vault in `Weapon Builder Docs/`:
 ```bash
 GODOT=/Applications/Godot_mono.app/Contents/MacOS/Godot      # the .NET build; /Applications/Godot.app can't run C#
 tools/test.sh [--filter Name]                                # core unit tests (dotnet test)
-$GODOT --headless --path . --build-solutions --quit          # build the Godot C# project
+dotnet build WeaponBuilder.csproj                             # build the Godot C# project (shows compile errors; Godot's --build-solutions hides them)
 ```
 
 ## Rules
