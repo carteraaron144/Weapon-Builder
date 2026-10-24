@@ -130,10 +130,19 @@ public partial class BuilderScreen : Node3D
     /// Opens a saved weapon (parts that no longer exist or fit are dropped, with a warning each).
     public void LoadFrom(string path)
     {
-        var json = FileAccess.GetFileAsString(path);
-        if (json == "")
+        var file = path.GetFile();
+        using var f = FileAccess.Open(path, FileAccess.ModeFlags.Read);
+        if (f == null)
         {
-            GD.PushError($"Can't read {path}: {FileAccess.GetOpenError()}");
+            var error = FileAccess.GetOpenError();
+            GD.PushError($"Can't read {path}: {error}");
+            ShowStatus($"Couldn't open {file}: {error}");
+            return;
+        }
+        var json = f.GetAsText();
+        if (json.Trim() == "")
+        {
+            ShowStatus($"{file} is empty");
             return;
         }
         Drag.Cancel();

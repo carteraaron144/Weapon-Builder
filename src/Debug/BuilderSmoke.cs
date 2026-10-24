@@ -91,10 +91,82 @@ public partial class BuilderSmoke : Node
         await DragPart(Centre(root), new Vector2(1100, 600));
         Check(Describe(b.Weapon.Root) == before, "dragging the root does nothing");
 
+        await EdgeCases();
         await Gallery();
 
         if (outDir != null)
             await Shot("final.png");
+    }
+
+    async Task EdgeCases()
+    {
+        const string dir = "user://smoke_gallery";
+        DirAccess.MakeDirRecursiveAbsolute(dir);
+        b.GalleryDir = dir;
+        await Reframe();
+        var root = b.Weapon.Root;
+        var top = root.Children["top"];
+        var before = Describe(root);
+
+        // Clicks while the thumbnail is being taken are ignored.
+        var build = b.Build("Capture Test");
+        var at = Centre(top);
+        Input.ParseInputEvent(new InputEventMouseButton
+            { Position = at, GlobalPosition = at, ButtonIndex = MouseButton.Left, Pressed = true, ButtonMask = MouseButtonMask.Left });
+        Input.ParseInputEvent(new InputEventMouseMotion
+            { Position = at + new Vector2(100, 0), GlobalPosition = at + new Vector2(100, 0), ButtonMask = MouseButtonMask.Left });
+        await build;
+        Check(!b.Drag.Dragging && !b.Drag.Pressing, "pressing and dragging while a thumbnail is taken does nothing");
+        await Mouse(at + new Vector2(100, 0), MouseButton.Left, false);
+        Check(Describe(b.Weapon.Root) == before, "...and the weapon is unchanged");
+        b.Weapon.Name = WeaponJson.DefaultName;
+        await Reframe();
+
+        // Zooming mid-drag re-snaps without a mouse move.
+        var bottom = Socket(root, "bottom");
+        await Mouse(await PaletteButton("ball_pommel"), MouseButton.Left, true);
+        await Move(bottom + new Vector2(30, 0));
+        Check(b.Drag.Snapped != null, "a part held near a socket snaps to it");
+        for (var i = 0; i < 5; i++)
+        {
+            var mouse = bottom + new Vector2(30, 0);
+            foreach (var pressed in new[] { true, false }) // a real wheel step sends both
+                Input.ParseInputEvent(new InputEventMouseButton
+                    { Position = mouse, GlobalPosition = mouse, ButtonIndex = MouseButton.WheelDown, Pressed = pressed });
+            await Frames(1);
+        }
+        await Frames(2);
+        Check(b.Drag.Snapped == null, "zooming out mid-drag un-snaps it without a mouse move");
+        await Mouse(new Vector2(1100, 600), MouseButton.Left, false);
+        await Reframe();
+        Check(Describe(b.Weapon.Root) == before, "...and dropping it off the weapon changes nothing");
+
+        // Losing focus mid-drag puts a picked-up part back.
+        at = Centre(top);
+        await Mouse(at, MouseButton.Left, true);
+        await Move(at + new Vector2(10, 0));
+        Check(b.Drag.Dragging, "moving a pressed part picks it up");
+        b.Drag.Notification((int)Node.NotificationApplicationFocusOut);
+        await Frames(2);
+        Check(!b.Drag.Dragging && Describe(b.Weapon.Root) == before, "losing focus mid-drag puts the part back");
+        await Mouse(at, MouseButton.Left, false);
+
+        // Losing focus between pressing and dragging forgets the press.
+        await Mouse(at, MouseButton.Left, true);
+        b.Drag.Notification((int)Node.NotificationApplicationFocusOut);
+        await Move(at + new Vector2(50, 0));
+        Check(!b.Drag.Dragging, "losing focus after pressing a part forgets the press");
+        await Mouse(at + new Vector2(50, 0), MouseButton.Left, false);
+        Check(Describe(b.Weapon.Root) == before, "...and the weapon is unchanged");
+
+        // Files that can't be loaded say why.
+        using (FileAccess.Open($"{dir}/empty.json", FileAccess.ModeFlags.Write)) { }
+        b.LoadFrom($"{dir}/empty.json");
+        Check(b.Status.Text.Contains("is empty"), $"loading an empty file says so (\"{b.Status.Text}\")");
+        b.LoadFrom("user://nope.json");
+        Check(b.Status.Text.StartsWith("Couldn't open"), $"loading a missing file says so (\"{b.Status.Text}\")");
+        Check(Describe(b.Weapon.Root) == before, "...and the weapon is unchanged");
+        ClearDir(dir);
     }
 
     async Task Gallery()

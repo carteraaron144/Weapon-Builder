@@ -31,6 +31,8 @@ public partial class DragController : Node3D
     (WeaponPart Parent, string Socket, float Rotation)? origin;   // where a picked-up part came from
 
     public bool Dragging => payload != null;
+    /// True between pressing on a placed part and either dragging it or letting go.
+    public bool Pressing => pressed != null;
     public IReadOnlyList<Target> Targets => targets;
     public Target? Snapped => snapped;
 
@@ -104,8 +106,33 @@ public partial class DragController : Node3D
         ghost = null;
     }
 
+    /// Stops the drag as if it never started: a picked-up part goes back where it came from, a new one is dropped.
+    public void Abort()
+    {
+        var part = payload;
+        var from = origin;
+        Cancel();
+        if (part != null && from != null)
+            PutBack(part, from.Value);
+    }
+
+    void PutBack(WeaponPart part, (WeaponPart Parent, string Socket, float Rotation) from)
+    {
+        part.RotationDegrees = from.Rotation;
+        screen.Editor.Attach(from.Parent, from.Socket, part);
+        screen.Refresh();
+    }
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationApplicationFocusOut)
+            Abort();
+    }
+
     public override void _Input(InputEvent e)
     {
+        if (screen.Capturing)
+            return;
         if (e is InputEventMouse m)
             mouse = m.Position;
         if (pressed is { } p && !Dragging)
@@ -141,7 +168,7 @@ public partial class DragController : Node3D
 
     public override void _UnhandledInput(InputEvent e)
     {
-        if (Dragging || e is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } press)
+        if (Dragging || screen.Capturing || e is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } press)
             return;
         var part = screen.View.PartAt(press.Position, screen.Camera);
         if (part == null || part == screen.Weapon.Root)
@@ -152,7 +179,12 @@ public partial class DragController : Node3D
 
     public override void _Process(double delta)
     {
-        if (Dragging || screen.Capturing)
+        if (Dragging)
+        {
+            UpdateGhost(); // the camera may have moved (zoom, orbit) without the mouse moving
+            return;
+        }
+        if (screen.Capturing)
             return;
         var overGui = GetViewport().GuiGetHoveredControl() != null;
         var part = overGui ? null : screen.View.PartAt(mouse, screen.Camera);
@@ -179,11 +211,7 @@ public partial class DragController : Node3D
         {
             // Off the weapon: gone. Over it but not on a socket that takes it: a picked-up part goes back.
             if (from is { } o && overWeapon)
-            {
-                part.RotationDegrees = o.Rotation;
-                screen.Editor.Attach(o.Parent, o.Socket, part);
-                screen.Refresh();
-            }
+                PutBack(part, o);
             return;
         }
         var result = target.Socket == null
