@@ -1,7 +1,7 @@
 namespace WeaponBuilder.Core;
 
 /// Every known part definition, by id. Categories keep the order parts were added in.
-public sealed class PartLibrary
+public sealed partial class PartLibrary
 {
     readonly Dictionary<string, PartDef> byId = new();
     readonly List<string> categories = new();
