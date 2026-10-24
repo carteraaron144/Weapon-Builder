@@ -286,9 +286,19 @@ public partial class BuilderSmoke : Node
 
         // The preview follows the cursor and leaves nothing behind.
         before = MaterialsOf(b.Weapon.Root);
+        Check(b.Drag.Orb == null, "no material orb before a paint starts");
         await Mouse(Swatch("obsidian"), MouseButton.Left, true);
+        await Frames(2);
+        Check(OrbShows("obsidian") && OrbNear(Swatch("obsidian")), "pressing a swatch picks up an obsidian orb at the cursor");
         await Move(Centre(blade));
         Check(b.View.MaterialShown(blade) == WeaponMaterials.Get("obsidian"), "a swatch held over a part previews it");
+        Check(OrbNear(Centre(blade)), "the orb follows the cursor");
+        Check(OrbScreenSize() is > 30f and < 50f, $"the orb is about 40 px across ({OrbScreenSize():0} px)");
+        b.Camera.State = (b.Camera.State.Pivot, b.Camera.State.Distance * 2f);
+        await Frames(2);
+        Check(OrbScreenSize() is > 30f and < 50f, $"...whatever the zoom ({OrbScreenSize():0} px)");
+        b.Camera.State = (b.Camera.State.Pivot, b.Camera.State.Distance / 2f);
+        await Frames(2);
         await Move(Centre(guard));
         Check(b.View.MaterialShown(blade) == WeaponMaterials.Get(blade.Material) && b.View.MaterialShown(guard) == WeaponMaterials.Get("obsidian"),
             "moving to another part moves the preview with it");
@@ -296,6 +306,9 @@ public partial class BuilderSmoke : Node
         await Mouse(EmptySpot(), MouseButton.Left, false);
         Check(MaterialsOf(b.Weapon.Root) == before && b.View.MaterialShown(guard) == WeaponMaterials.Get(guard.Material),
             "...and letting go off the weapon changes nothing");
+        Check(b.Drag.Orb == null, "...and drops the orb");
+        await Paint(blade.Material, Centre(blade)); // its own material, so the weapon stays as the checks below expect
+        Check(b.Drag.Orb == null, "painting a part drops the orb");
 
         // Interrupted paint drags leave the weapon as it was.
         await Mouse(Swatch("gold"), MouseButton.Left, true);
@@ -304,6 +317,7 @@ public partial class BuilderSmoke : Node
         await Frames(2);
         Check(b.Drag.Painting == null && b.View.MaterialShown(blade) == WeaponMaterials.Get(blade.Material),
             "losing focus mid-paint drops the paint and its preview");
+        Check(b.Drag.Orb == null, "...and the orb");
         await Mouse(Centre(blade), MouseButton.Left, false);
         Check(MaterialsOf(b.Weapon.Root) == before, "...and letting go afterwards paints nothing");
 
@@ -312,6 +326,7 @@ public partial class BuilderSmoke : Node
         await PressKey(Godot.Key.Escape);
         Check(b.Drag.Painting == null && b.View.MaterialShown(blade) == WeaponMaterials.Get(blade.Material),
             "Escape drops a paint drag and its preview");
+        Check(b.Drag.Orb == null, "...and the orb");
         await Mouse(Centre(blade), MouseButton.Left, false);
         Check(MaterialsOf(b.Weapon.Root) == before, "...and letting go afterwards paints nothing");
 
@@ -359,6 +374,7 @@ public partial class BuilderSmoke : Node
         b.Randomize(7);
         await Frames(2);
         Check(b.Drag.Painting == null && MaterialsOf(b.Weapon.Root) == clean, "Randomize mid-paint drops the paint");
+        Check(b.Drag.Orb == null, "...and the orb");
         await Mouse(Centre(b.Weapon.Root), MouseButton.Left, false);
         Check(MaterialsOf(b.Weapon.Root) == clean, "...and letting go afterwards paints nothing");
 
@@ -387,6 +403,18 @@ public partial class BuilderSmoke : Node
             await Reframe();
             await Shot($"material-{m.Id}.png");
         }
+
+        // Mid-paint: a gold orb held over the iron blade, previewing it.
+        foreach (var category in PartPalette.Tabs)
+            b.Editor.SetMaterialForCategory(b.Weapon, category, b.Materials.Get("iron"));
+        b.Refresh();
+        await Reframe();
+        var blade = b.Weapon.Root.Children["top"];
+        await Mouse(Swatch("gold"), MouseButton.Left, true);
+        await Move(Centre(blade));
+        await Shot("painting-orb.png");
+        await PressKey(Godot.Key.Escape);
+        await Mouse(Centre(blade), MouseButton.Left, false);
     }
 
     static void ClearDir(string dir)
@@ -544,6 +572,25 @@ public partial class BuilderSmoke : Node
 
     /// A spot in the 3D view well away from the weapon and the panels.
     Vector2 EmptySpot() => GetViewport().GetVisibleRect().Size * new Vector2(0.7f, 0.9f);
+
+    /// The orb shows this material (same colour and finish as a part painted with it).
+    bool OrbShows(string materialId) =>
+        b.Drag.Orb?.MaterialOverride is StandardMaterial3D m && WeaponMaterials.Get(materialId) is StandardMaterial3D want
+        && m.AlbedoColor == want.AlbedoColor && Mathf.IsEqualApprox(m.Metallic, want.Metallic);
+
+    /// The orb sits just up and to the right of this cursor position.
+    bool OrbNear(Vector2 cursor) =>
+        b.Drag.Orb is { } orb && b.Camera.UnprojectPosition(orb.GlobalPosition).DistanceTo(cursor + DragController.OrbOffset) < 3f;
+
+    /// The orb's diameter on screen, in pixels.
+    float OrbScreenSize()
+    {
+        if (b.Drag.Orb is not { } orb)
+            return 0f;
+        var centre = orb.GlobalPosition;
+        var edge = centre + b.Camera.GlobalBasis.X * orb.Scale.X * DragController.OrbRadius;
+        return 2f * b.Camera.UnprojectPosition(centre).DistanceTo(b.Camera.UnprojectPosition(edge));
+    }
 
     Vector2 RootScreen() => b.Camera.UnprojectPosition(Vector3.Zero);
 

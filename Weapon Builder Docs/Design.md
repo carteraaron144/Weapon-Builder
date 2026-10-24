@@ -27,7 +27,7 @@ Of course this would mean more components added more weight, heavier weapons are
 - **Scaling:** a part's scale is `min(socket.length / part.length, socket.width / part.width)`, kept between 0.25 and 4. Child sockets inherit it.
 - **Edges:** each blade stores its edge as a curve; an edge type is a cross-section (or a repeating piece) swept along it.
 - **Materials:** object-space triplanar, so no UVs are needed and textures move with the weapon.
-- **Layout (Spore-style, 2026-10-24):** part icons on the left (a narrow grid, three-quarter view as in The Mountain's icons), the weapon in the middle, a materials panel on the right. You drag a material onto a part to paint it, and Shift paints the whole category. There is no separate part selection.
+- **Layout (Spore-style, 2026-10-24):** part icons on the left (a narrow grid, three-quarter view as in The Mountain's icons), the weapon in the middle, a materials panel on the right. You drag a material onto a part to paint it, and Shift paints the whole category. While you drag, a small ball of the material floats just up and right of the cursor (about 40 px, drawn over everything) so it is clear what you are holding. There is no separate part selection.
 - **Material set:** bronze, iron, steel, gold, mithril, obsidian, wood. Leather is a hidden "basic" material, used only as the grip's default. Any part takes any material for now. Parts can list allowed material tags later, but none do yet.
 - **Snapping:** while dragging, compatible sockets light up, the part snaps to the nearest one within a radius on screen, and a see-through preview shows where it'll go.
 - **Randomize:** a random walk down the tree: fill required sockets, fill optional ones by chance, cap the depth, and pick materials.
