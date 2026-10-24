@@ -20,7 +20,7 @@ public static class WeaponJson
         public string? Part { get; set; }
         public string? Material { get; set; }
         public float Rotation { get; set; }
-        public Dictionary<string, NodeDto>? Children { get; set; }
+        public Dictionary<string, NodeDto?>? Children { get; set; }
     }
 
     public static string Write(Weapon w) =>
@@ -60,11 +60,16 @@ public static class WeaponJson
         return new Weapon(string.IsNullOrWhiteSpace(file?.Name) ? DefaultName : file.Name, root);
     }
 
-    static void AddChildren(WeaponPart parent, Dictionary<string, NodeDto> children, PartLibrary lib, List<string> warnings)
+    static void AddChildren(WeaponPart parent, Dictionary<string, NodeDto?> children, PartLibrary lib, List<string> warnings)
     {
         var parentDef = lib.Get(parent.PartId);
         foreach (var (socketName, dto) in children)
         {
+            if (dto == null)
+            {
+                warnings.Add($"Empty entry on '{parent.PartId}.{socketName}' was dropped");
+                continue;
+            }
             var socket = parentDef.Sockets.FirstOrDefault(s => s.Name == socketName);
             if (dto.Part == null || !lib.TryGet(dto.Part, out var def))
             {
@@ -91,6 +96,6 @@ public static class WeaponJson
         Part = p.PartId,
         Material = p.Material,
         Rotation = p.RotationDegrees,
-        Children = p.Children.Count == 0 ? null : p.Children.ToDictionary(c => c.Key, c => ToDto(c.Value)),
+        Children = p.Children.Count == 0 ? null : p.Children.ToDictionary(c => c.Key, c => (NodeDto?)ToDto(c.Value)),
     };
 }

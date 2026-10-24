@@ -73,4 +73,13 @@ public class WeaponJsonTests
         Assert.Equal("grip", back.Root.PartId);
         Assert.Single(warnings);
     }
+
+    [Fact]
+    public void Read_NullChildIsDroppedWithAWarning()
+    {
+        var json = """{ "version": 1, "name": "X", "root": { "part": "grip", "children": { "top": null } } }""";
+        var w = WeaponJson.Read(json, Lib, "grip", out var warnings);
+        Assert.Empty(w.Root.Children);
+        Assert.Contains(warnings, x => x.Contains("grip.top"));
+    }
 }
