@@ -17,6 +17,7 @@ public partial class BuilderScreen : Node3D
     public static readonly Aabb NewWeaponFrame = new(new Vector3(-0.3f, -0.2f, -0.3f), new Vector3(0.6f, 1.4f, 0.6f));
 
     public PartLibrary Lib { get; private set; } = null!;
+    public MaterialLibrary Materials => WeaponMaterials.Library;
     /// The handle new weapons start from: DefaultHandle, or another handle if that one is missing.
     public string RootHandle { get; private set; } = DefaultHandle;
     public WeaponEditor Editor { get; private set; } = null!;
@@ -138,7 +139,7 @@ public partial class BuilderScreen : Node3D
     {
         Drag.Cancel();
         var used = seed ?? System.Random.Shared.Next();
-        Weapon = RandomWeapon.Build(Lib, new System.Random(used));
+        Weapon = RandomWeapon.Build(Lib, Materials, new System.Random(used));
         Refresh();
         Camera.Frame(View.Bounds);
         ShowStatus($"Seed {used}");
@@ -167,7 +168,7 @@ public partial class BuilderScreen : Node3D
             return;
         }
         Drag.Cancel();
-        Weapon = WeaponJson.Read(json, Lib, RootHandle, out var warnings);
+        Weapon = WeaponJson.Read(json, Lib, Materials, RootHandle, out var warnings);
         foreach (var w in warnings)
             GD.PushWarning($"{path}: {w}");
         Refresh();
