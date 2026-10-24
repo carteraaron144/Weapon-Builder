@@ -32,17 +32,17 @@ Each feature gets its own detailed implementation plan, with exact signatures an
 
 ## 0. MVP hardening
 
-**Detailed plan:** [[2026-10-24-hardening-randomize]] (Tasks 1–5).
+**Detailed plan:** [[2026-10-24-hardening-randomize]] (Tasks 1–5). **Done.**
 
 These are the minor issues the MVP final review deferred. Each fix gets a failing test or smoke check first.
 
-- [ ] A `null` child in the weapon JSON drops that child with a warning instead of throwing.
-- [ ] A missing default handle (`grip`) shows an error instead of crashing. The builder falls back to the first part tagged `handle`.
-- [ ] Input is ignored while a thumbnail is being captured (`Capturing`).
-- [ ] When a part moves to a socket with a different rotation step, its rotation snaps to that step.
-- [ ] Zooming mid-drag re-snaps the ghost. Losing window focus cancels the drag.
-- [ ] An empty file passed to `LoadFrom` gives "empty file", not "unreadable".
-- [ ] `data/*` is added to the export filter. Export a macOS build once and check that parts load.
+- [x] A `null` child in the weapon JSON drops that child with a warning instead of throwing.
+- [x] A missing default handle (`grip`) shows an error instead of crashing. The builder falls back to the first part tagged `handle`.
+- [x] Input is ignored while a thumbnail is being captured (`Capturing`).
+- [x] When a part moves to a socket with a different rotation step, its rotation snaps to that step.
+- [x] Zooming mid-drag re-snaps the ghost. Losing window focus cancels the drag.
+- [x] An empty file passed to `LoadFrom` gives "empty file", not "unreadable".
+- [x] `data/*` is added to the export filter. Export a macOS build once and check that parts load.
 
 **Done when:** core tests and smoke checks are green, and the exported build opens and builds a weapon.
 
@@ -52,7 +52,7 @@ These are the minor issues the MVP final review deferred. Each fix gets a failin
 
 A **Randomize** button replaces the current weapon with a random one.
 
-**Detailed plan:** [[2026-10-24-hardening-randomize]] (Tasks 6–7).
+**Detailed plan:** [[2026-10-24-hardening-randomize]] (Tasks 6–7). **Done.** It uses each part's default material until the materials picker exists.
 
 **Decisions**
 
