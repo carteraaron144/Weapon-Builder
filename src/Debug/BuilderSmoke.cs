@@ -315,6 +315,34 @@ public partial class BuilderSmoke : Node
         await Mouse(Centre(blade), MouseButton.Left, false);
         Check(MaterialsOf(b.Weapon.Root) == before, "...and letting go afterwards paints nothing");
 
+        // Letting go over the UI paints nothing, even with a part hidden behind it.
+        var panel = b.MaterialPanel.GetParent<Control>().GetGlobalRect();
+        var (pivot, distance) = b.Camera.State;
+        for (var k = 1; k <= 60 && !panel.HasPoint(Centre(blade)); k++)
+        {
+            b.Camera.State = (pivot - b.Camera.GlobalBasis.X * 0.02f * k, distance);
+            await Frames(2);
+        }
+        Check(panel.HasPoint(Centre(blade)), "(setup) the blade sits behind the materials panel");
+        await Paint("gold", Centre(blade));
+        Check(MaterialsOf(b.Weapon.Root) == before, "letting a swatch go over the panel paints nothing behind it");
+        await Reframe();
+
+        // Clicking a swatch leaves no keyboard focus behind, so Space can't start a paint.
+        await Mouse(Swatch("gold"), MouseButton.Left, true);
+        await Mouse(Swatch("gold"), MouseButton.Left, false);
+        await PressKey(Godot.Key.Space);
+        Check(b.Drag.Painting == null, "Space after clicking a swatch doesn't start a paint");
+        await Mouse(Centre(blade), MouseButton.Left, true);
+        await Mouse(Centre(blade), MouseButton.Left, false);
+        Check(MaterialsOf(b.Weapon.Root) == before, "...so the next click paints nothing");
+        var paletteButton = await PaletteButton("ball_pommel");
+        await Mouse(paletteButton, MouseButton.Left, true);
+        await Mouse(paletteButton, MouseButton.Left, false);
+        await PressKey(Godot.Key.Space);
+        Check(!b.Drag.Dragging, "Space after clicking a palette button doesn't start a part drag");
+        b.Drag.Cancel();
+
         // Survives Build and Load.
         var stem = await b.Build("Painted");
         b.NewWeapon();

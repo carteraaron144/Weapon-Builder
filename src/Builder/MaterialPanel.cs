@@ -22,6 +22,7 @@ public partial class MaterialPanel : VBoxContainer
                 Name = m.Id, Text = m.Name, TooltipText = $"Drag onto a part to paint it {m.Name.ToLowerInvariant()} (Shift: the whole category)",
                 Icon = Swatch(m), IconAlignment = HorizontalAlignment.Center, VerticalIconAlignment = VerticalAlignment.Top,
                 CustomMinimumSize = new Vector2(84, 0), Flat = true,
+                FocusMode = FocusModeEnum.None, // no keyboard focus: Space/Enter mustn't start a paint
             };
             button.AddThemeFontSizeOverride("font_size", 11);
             var id = m.Id;

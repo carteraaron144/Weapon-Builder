@@ -27,6 +27,7 @@ public partial class BuilderScreen : Node3D
     public PartPalette Palette { get; private set; } = null!;
     public PartIcons Icons { get; private set; } = null!;
     public MaterialPanel MaterialPanel { get; private set; } = null!;
+    Control materialsBox = null!, toolbar = null!;
     /// Finishes when every palette button has its icon.
     public Task IconsReady { get; private set; } = Task.CompletedTask;
     public DragController Drag { get; private set; } = null!;
@@ -106,7 +107,7 @@ public partial class BuilderScreen : Node3D
         Palette.Fill(Lib);
         Palette.PartPressed += Drag.BeginNew;
 
-        var materialsBox = new PanelContainer { Name = "Materials" };
+        materialsBox = new PanelContainer { Name = "Materials" };
         materialsBox.SetAnchorsPreset(Control.LayoutPreset.RightWide);
         materialsBox.GrowHorizontal = Control.GrowDirection.Begin;
         materialsBox.OffsetRight = -12;
@@ -117,7 +118,7 @@ public partial class BuilderScreen : Node3D
         MaterialPanel.Fill(Materials);
         MaterialPanel.MaterialPressed += Drag.BeginPaint;
 
-        var toolbar = new HBoxContainer { Name = "Toolbar" };
+        toolbar = new HBoxContainer { Name = "Toolbar" };
         toolbar.SetAnchorsPreset(Control.LayoutPreset.TopRight);
         toolbar.GrowHorizontal = Control.GrowDirection.Begin;
         toolbar.OffsetRight = -12;
@@ -149,6 +150,10 @@ public partial class BuilderScreen : Node3D
             foreach (var def in Lib.ByCategory(tab))
                 Palette.SetIcon(def.Id, await Icons.Get(def));
     }
+
+    /// Whether a screen position is over the palette, the materials panel or the toolbar (not the 3D view).
+    public bool OverUi(Vector2 at) =>
+        Palette.GetGlobalRect().HasPoint(at) || materialsBox.GetGlobalRect().HasPoint(at) || toolbar.GetGlobalRect().HasPoint(at);
 
     /// Starts over with a bare handle.
     public void NewWeapon()

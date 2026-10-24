@@ -209,7 +209,7 @@ public partial class DragController : Node3D
     {
         if (painting != null)
         {
-            var target = screen.View.PartAt(mouse, screen.Camera);
+            var target = PaintTarget();
             screen.View.SetHovered(target);
             screen.View.Preview(PaintTargets(target, Input.IsKeyPressed(Key.Shift)), painting);
             return;
@@ -239,10 +239,14 @@ public partial class DragController : Node3D
         return parts.Where(p => Fitting.AllowsMaterial(screen.Lib.Get(p.PartId), material)).ToList();
     }
 
+    /// The part a paint would land on: the one under the cursor, unless the cursor is over the UI (a part hidden
+    /// behind a panel isn't a target).
+    WeaponPart? PaintTarget() => screen.OverUi(mouse) ? null : screen.View.PartAt(mouse, screen.Camera);
+
     void ReleasePaint(bool wholeCategory)
     {
         var id = painting!;
-        var part = screen.View.PartAt(mouse, screen.Camera);
+        var part = PaintTarget();
         Cancel();
         if (part == null || !screen.Materials.TryGet(id, out var material))
             return;

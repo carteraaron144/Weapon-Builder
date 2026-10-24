@@ -34,6 +34,7 @@ public partial class PartPalette : TabContainer
                     CustomMinimumSize = new Vector2(ButtonSize, ButtonSize),
                     ExpandIcon = true, IconAlignment = HorizontalAlignment.Center,
                     AutowrapMode = TextServer.AutowrapMode.WordSmart, ClipText = true,
+                    FocusMode = FocusModeEnum.None, // no keyboard focus: Space/Enter mustn't start a drag
                 };
                 button.AddThemeFontSizeOverride("font_size", 11);
                 var id = def.Id;
