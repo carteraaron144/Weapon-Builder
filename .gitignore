@@ -1,0 +1,19 @@
+# Godot
+.godot/
+*.import.tmp
+export_presets.cfg
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+.idea/
+TestResults/
+
+# macOS
+.DS_Store
+
+# Obsidian: per-machine UI state
+Weapon Builder Docs/.obsidian/workspace.json
+.superpowers/
