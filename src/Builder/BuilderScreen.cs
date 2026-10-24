@@ -129,6 +129,8 @@ public partial class BuilderScreen : Node3D
             GD.PushWarning($"{path}: {w}");
         Refresh();
         Camera.Frame(View.Bounds);
+        if (warnings.Count > 0)
+            ShowStatus("Loaded with changes: " + string.Join("; ", warnings));
     }
 
     void AskName()
@@ -140,14 +142,24 @@ public partial class BuilderScreen : Node3D
         NameEdit.SelectAll();
     }
 
-    /// Names the weapon and saves it with a thumbnail to the gallery. Returns the saved file stem.
-    public async Task<string> Build(string name)
+    /// Names the weapon and saves it with a thumbnail to the gallery. Returns the saved file stem, or null
+    /// if saving failed (the status line says why).
+    public async Task<string?> Build(string name)
     {
         Weapon.Name = string.IsNullOrWhiteSpace(name) ? WeaponJson.DefaultName : name.Trim();
-        var thumbnail = await CaptureThumbnail();
-        var stem = GallerySaver.Save(Weapon, thumbnail, GalleryDir);
-        ShowStatus($"Saved {stem}");
-        return stem;
+        try
+        {
+            var thumbnail = await CaptureThumbnail();
+            var stem = GallerySaver.Save(Weapon, thumbnail, GalleryDir);
+            ShowStatus($"Saved {stem}");
+            return stem;
+        }
+        catch (Exception e)
+        {
+            GD.PushError($"Couldn't save {Weapon.Name}: {e}");
+            ShowStatus($"Couldn't save: {e.Message}");
+            return null;
+        }
     }
 
     /// The weapon alone (no UI, markers or outline), framed, as a square thumbnail. The camera goes back after.
@@ -167,7 +179,8 @@ public partial class BuilderScreen : Node3D
         return image;
     }
 
-    void ShowStatus(string text)
+    /// Shows a line at the top of the screen for a few seconds.
+    public void ShowStatus(string text)
     {
         Status.Text = text;
         GetTree().CreateTimer(3).Timeout += () =>

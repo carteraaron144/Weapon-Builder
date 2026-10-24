@@ -51,6 +51,13 @@ public partial class BuilderSmoke : Node
         Check(At(blade, "tip") == "axe_head", "axe head attaches to the blade's tip");
 
         var before = Describe(b.Weapon.Root);
+        await Mouse(Centre(blade), MouseButton.Left, true);
+        await Mouse(Centre(blade), MouseButton.Left, false);
+        Check(Describe(b.Weapon.Root) == before, "clicking a part without dragging leaves it there");
+
+        await DragPart(Centre(root.Children["bottom"]), Socket(root, "top"));
+        Check(Describe(b.Weapon.Root) == before, "a placed part dropped on a socket that won't take it goes back");
+
         await Palette("spike_pommel", Socket(root, "top"));
         Check(Describe(b.Weapon.Root) == before, "a pommel dropped on the top socket changes nothing");
 
@@ -76,6 +83,7 @@ public partial class BuilderSmoke : Node
         root = b.Weapon.Root;
         Check(root.PartId == "long_haft", "the root swaps to the long haft");
         Check(At(root, "top") == "axe_head" && !root.Children.ContainsKey("guard"), "...keeping the head, dropping the guard");
+        Check(b.Status.Text.Contains("Bar Guard"), $"...and says the guard was dropped (\"{b.Status.Text}\")");
 
         await Reframe();
         before = Describe(b.Weapon.Root);
@@ -121,6 +129,15 @@ public partial class BuilderSmoke : Node
         b.LoadFrom($"{dir}/{second}.json");
         await Frames(4);
         Check(Describe(b.Weapon.Root) == saved && b.Weapon.Name == "Smoke Axe", "loading a saved weapon gives the same weapon");
+        using (var f = FileAccess.Open($"{dir}/stale.json", FileAccess.ModeFlags.Write))
+            f.StoreString(FileAccess.GetFileAsString($"{dir}/{second}.json").Replace("\"axe_head\"", "\"melted_part\""));
+        b.LoadFrom($"{dir}/stale.json");
+        Check(b.Status.Text.Contains("melted_part"), $"loading says which parts were skipped (\"{b.Status.Text}\")");
+
+        b.GalleryDir = "/System/not-writable";
+        await b.Build("Nope");
+        Check(b.Status.Text.StartsWith("Couldn't save"), $"a failed save says so (\"{b.Status.Text}\")");
+        Check(b.UiLayer.Visible, "...and the UI comes back");
         ClearDir(dir);
     }
 

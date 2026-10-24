@@ -22,7 +22,9 @@ public static class GallerySaver
                 throw new InvalidOperationException($"Can't write {dir}/{stem}.json: {FileAccess.GetOpenError()}");
             file.StoreString(WeaponJson.Write(w));
         }
-        thumbnail.SavePng($"{dir}/{stem}.png");
+        var err = thumbnail.SavePng($"{dir}/{stem}.png");
+        if (err != Error.Ok)
+            throw new InvalidOperationException($"Can't write {dir}/{stem}.png: {err}");
         return stem;
     }
 

@@ -8,10 +8,13 @@ namespace WeaponBuilder;
 /// Dragging parts: from the palette onto sockets, and existing parts off the weapon or onto other sockets.
 /// While dragging, compatible sockets show markers (pale blue = empty, amber = swap); the ghost snaps to the
 /// nearest one within SnapPixels on screen, R spins it by the socket's step, and releasing attaches it there.
-/// Releasing anywhere else drops it (an existing part is then removed). Handles target the root (a swap).
+/// A part on the weapon is picked up once the cursor moves DragPixels with the button held (a click leaves it).
+/// Released elsewhere over the weapon, a picked-up part goes back; released off the weapon, it's removed.
+/// Handles target the root (a swap). Parts a swap leaves without a socket are named in the status line.
 public partial class DragController : Node3D
 {
     public const float SnapPixels = 48f;
+    public const float DragPixels = 6f;
     static readonly Color EmptyColor = new(0.55f, 0.8f, 1f);
     static readonly Color SwapColor = new(1f, 0.7f, 0.2f);
 
@@ -24,6 +27,8 @@ public partial class DragController : Node3D
     readonly List<Target> targets = new();
     Target? snapped;
     Vector2 mouse;
+    (WeaponPart Part, Vector2 At)? pressed;                       // a part pressed but not yet dragged
+    (WeaponPart Parent, string Socket, float Rotation)? origin;   // where a picked-up part came from
 
     public bool Dragging => payload != null;
     public IReadOnlyList<Target> Targets => targets;
@@ -41,17 +46,20 @@ public partial class DragController : Node3D
     /// Picks an existing part up off the weapon (with its subtree). The root can't be picked up.
     public bool BeginExisting(WeaponPart part)
     {
+        var parent = screen.Editor.FindParent(screen.Weapon, part, out var socket);
         var removed = screen.Editor.DetachPart(screen.Weapon, part);
-        if (removed == null)
+        if (parent == null || removed == null)
             return false;
         screen.Refresh();
         Begin(removed);
+        origin = (parent, socket, removed.RotationDegrees);
         return true;
     }
 
     void Begin(WeaponPart part)
     {
         Cancel();
+        origin = null;
         screen.View.SetHovered(null);
         payload = part;
         var def = screen.Lib.Get(part.PartId);
@@ -87,6 +95,7 @@ public partial class DragController : Node3D
     public void Cancel()
     {
         payload = null;
+        pressed = null;
         snapped = null;
         foreach (var t in targets)
             t.Marker.QueueFree();
@@ -99,6 +108,19 @@ public partial class DragController : Node3D
     {
         if (e is InputEventMouse m)
             mouse = m.Position;
+        if (pressed is { } p && !Dragging)
+        {
+            if (e is InputEventMouseMotion motion && (motion.ButtonMask & MouseButtonMask.Left) != 0
+                && motion.Position.DistanceTo(p.At) >= DragPixels)
+            {
+                pressed = null;
+                BeginExisting(p.Part);
+            }
+            else if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false })
+            {
+                pressed = null; // just a click
+            }
+        }
         if (!Dragging)
             return;
         switch (e)
@@ -122,8 +144,10 @@ public partial class DragController : Node3D
         if (Dragging || e is not InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: true } press)
             return;
         var part = screen.View.PartAt(press.Position, screen.Camera);
-        if (part != null && BeginExisting(part))
-            GetViewport().SetInputAsHandled();
+        if (part == null || part == screen.Weapon.Root)
+            return;
+        pressed = (part, press.Position);
+        GetViewport().SetInputAsHandled();
     }
 
     public override void _Process(double delta)
@@ -148,14 +172,45 @@ public partial class DragController : Node3D
     {
         var part = payload!;
         var target = snapped;
+        var from = origin;
+        var overWeapon = OverWeapon(mouse);
         Cancel();
         if (target == null)
-            return; // dropped off the weapon
-        var ok = target.Socket == null
-            ? screen.Editor.SwapRoot(screen.Weapon, part.PartId).Ok
-            : screen.Editor.Attach(target.Socket.Owner, target.Socket.Socket.Name, part).Ok;
-        if (ok)
-            screen.Refresh();
+        {
+            // Off the weapon: gone. Over it but not on a socket that takes it: a picked-up part goes back.
+            if (from is { } o && overWeapon)
+            {
+                part.RotationDegrees = o.Rotation;
+                screen.Editor.Attach(o.Parent, o.Socket, part);
+                screen.Refresh();
+            }
+            return;
+        }
+        var result = target.Socket == null
+            ? screen.Editor.SwapRoot(screen.Weapon, part.PartId)
+            : screen.Editor.Attach(target.Socket.Owner, target.Socket.Socket.Name, part);
+        if (!result.Ok)
+            return;
+        screen.Refresh();
+        if (result.Dropped.Count > 0)
+            screen.ShowStatus("Dropped: " + string.Join(", ", result.Dropped.Select(d => screen.Lib.Get(d.PartId).Name)));
+    }
+
+    /// Whether a screen position is over the weapon (its projected bounds, padded by SnapPixels).
+    bool OverWeapon(Vector2 at)
+    {
+        var cam = screen.Camera;
+        var b = screen.View.Bounds;
+        Rect2? rect = null;
+        for (var i = 0; i < 8; i++)
+        {
+            var corner = b.GetEndpoint(i);
+            if (cam.IsPositionBehind(corner))
+                continue;
+            var p = cam.UnprojectPosition(corner);
+            rect = rect?.Expand(p) ?? new Rect2(p, Vector2.Zero);
+        }
+        return rect?.Grow(SnapPixels).HasPoint(at) ?? false;
     }
 
     /// Snaps the ghost to the nearest target within SnapPixels, or floats it under the cursor.
