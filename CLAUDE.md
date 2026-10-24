@@ -14,6 +14,8 @@ The design notes and plans are an Obsidian vault in `Weapon Builder Docs/`:
 - `tests/WeaponBuilder.Core.Tests/`: xUnit tests for `core/`. Has a `.gdignore`.
 - `src/`: Godot-side C# (meshes, materials, the builder scene, drag and snap, gallery saving). Convert core matrices with `NumericsBridge.ToGodot`.
 - `data/parts/*.json`: part definitions (files starting with `_` are templates and skipped).
+- `data/materials.json`: the materials; the panel lists the non-hidden ones in file order. Leather is hidden (the grip's default).
+- Part icons are rendered at startup (`src/Parts/PartIcons.cs`) and cached in `user://icons/<id>-<hash>.png`; the hash covers the part, the materials file and the icon style, so edits re-render them.
 - `WeaponBuilder.csproj` excludes `core/**` and `tests/**` and references the core project.
 
 ## Commands

@@ -334,11 +334,31 @@ public partial class BuilderSmoke : Node
         await Mouse(Centre(b.Weapon.Root), MouseButton.Left, false);
         Check(MaterialsOf(b.Weapon.Root) == clean, "...and letting go afterwards paints nothing");
 
+        if (outDir != null)
+            await MaterialShots();
+
         // Part drags still work.
         b.NewWeapon();
         await Palette("ball_pommel", Socket(b.Weapon.Root, "bottom"));
         Check(At(b.Weapon.Root, "bottom") == "ball_pommel", "part drags still work after painting");
         ClearDir(dir);
+    }
+
+    /// A sword in each panel material, for judging how the materials look.
+    async Task MaterialShots()
+    {
+        b.NewWeapon();
+        b.Editor.Attach(b.Weapon.Root, "top", "broad_blade");
+        b.Editor.Attach(b.Weapon.Root, "guard", "curved_guard");
+        b.Editor.Attach(b.Weapon.Root, "bottom", "ball_pommel");
+        foreach (var m in b.Materials.Visible)
+        {
+            foreach (var category in PartPalette.Tabs)
+                b.Editor.SetMaterialForCategory(b.Weapon, category, m);
+            b.Refresh();
+            await Reframe();
+            await Shot($"material-{m.Id}.png");
+        }
     }
 
     static void ClearDir(string dir)

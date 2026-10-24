@@ -45,8 +45,8 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
 
 ### Task 0: Branch
 
-- [ ] **Step 1:** Run `git checkout -b feat/builder-layout main`.
-- [ ] **Step 2:** Commit the spec and this plan alone as `docs: plan the Spore-style builder layout`. Include `Weapon Builder Docs/Design.md` and the two plan files.
+- [x] **Step 1:** Run `git checkout -b feat/builder-layout main`.
+- [x] **Step 2:** Commit the spec and this plan alone as `docs: plan the Spore-style builder layout`. Include `Weapon Builder Docs/Design.md` and the two plan files.
 
 ### Task 1: MaterialLibrary
 
@@ -69,16 +69,16 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
 - **Bad entries:** an entry that fails is skipped, with one error naming its index or id. Failures are a missing id, a duplicate id, or a colour that isn't `#RRGGBB`. Use the same `JsonOptions.Value` as parts.
 - **Unreadable JSON:** gives an empty library and one error.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `Load_ReadsEveryFieldInFileOrder`: two entries load with their exact fields. `#FF8000` becomes `(1, 0.502, 0)` within 0.01.
   - `Load_DuplicateIdIsSkippedWithAnError`: the first entry is kept, and the error contains the id.
   - `Load_BadColourIsSkippedWithAnError`: `"orange"` and `"#12345"` are both rejected.
   - `Load_BrokenJsonGivesAnEmptyLibraryAndAnError`
   - `Visible_LeavesOutHiddenMaterials`
-- [ ] **Step 2:** Run `tools/test.sh --filter MaterialLibrary`. Expected: compile failure, because `MaterialLibrary` doesn't exist.
-- [ ] **Step 3:** Implement it. Use a private `MaterialFile` DTO, the same pattern as `PartFile`.
-- [ ] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
-- [ ] **Step 5:** Commit as `feat(core): materials as data`.
+- [x] **Step 2:** Run `tools/test.sh --filter MaterialLibrary`. Expected: compile failure, because `MaterialLibrary` doesn't exist.
+- [x] **Step 3:** Implement it. Use a private `MaterialFile` DTO, the same pattern as `PartFile`.
+- [x] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
+- [x] **Step 5:** Commit as `feat(core): materials as data`.
 
 ### Task 2: Shipped materials
 
@@ -102,15 +102,15 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
 | wood | Wood | #73492B | 0.0 | 0.8 | wood | |
 | leather | Leather | #54331F | 0.0 | 0.9 | leather | true |
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - Find the repo root the same way `DataPartsTests.LoadShipped` does, and move that walk into a shared `static class RepoFiles { public static string Root { get; } }` used by both test classes.
   - `ShippedMaterialsLoadWithoutErrors`
   - `Panel_IsTheSevenAgreedMaterialsInOrder`: `Visible` ids equal `["bronze","iron","steel","gold","mithril","obsidian","wood"]`.
   - `EveryPartsDefaultMaterialExists`: every shipped part's `DefaultMaterial` is in the library. This fails until brass is renamed.
-- [ ] **Step 2:** Run `tools/test.sh --filter DataMaterials`. Expected: FAIL, because there's no file and brass is unknown.
-- [ ] **Step 3:** Write `data/materials.json` and rename brass to bronze in the part files.
-- [ ] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
-- [ ] **Step 5:** Commit as `feat(data): the seven panel materials and hidden leather`.
+- [x] **Step 2:** Run `tools/test.sh --filter DataMaterials`. Expected: FAIL, because there's no file and brass is unknown.
+- [x] **Step 3:** Write `data/materials.json` and rename brass to bronze in the part files.
+- [x] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
+- [x] **Step 5:** Commit as `feat(data): the seven panel materials and hidden leather`.
 
 ### Task 3: Painting rules
 
@@ -126,14 +126,14 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
   - `public int WeaponEditor.SetMaterialForCategory(Weapon weapon, string category, MaterialDef material)`: paints every part in the tree whose def has that category and allows the material. It returns how many were painted.
 - **Deviation from the spec:** these take a `MaterialDef`, not an id. The caller looks the id up, so "unknown id" can't reach the editor, and `WeaponEditor`'s constructor stays as it is.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `SetMaterial_PaintsThePart`
   - `SetMaterialForCategory_PaintsOnlyThatCategory`: build a weapon of root `h` (category "Test") plus children in categories `A`, `A` and `B`. You'll need a `Part` overload or `with { Category = ... }`. The method returns 2, and the `B` part keeps its material.
   - `SetMaterialForCategory_IncludesTheRoot`: painting the root's category paints the root.
-- [ ] **Step 2:** Run `tools/test.sh --filter WeaponEditor`. Expected: compile failure.
-- [ ] **Step 3:** Implement it.
-- [ ] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
-- [ ] **Step 5:** Commit as `feat(core): paint a part or a whole category`.
+- [x] **Step 2:** Run `tools/test.sh --filter WeaponEditor`. Expected: compile failure.
+- [x] **Step 3:** Implement it.
+- [x] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
+- [x] **Step 5:** Commit as `feat(core): paint a part or a whole category`.
 
 ### Task 4: Materials in saves
 
@@ -146,14 +146,14 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
 - **The rule:** a node's material is kept if it is known and allowed. Otherwise the part's default is used, with the warning `Unknown material '<id>' on '<part id>', using '<default>'`. A missing material is the default, with no warning.
 - **`TestParts.Materials`:** a `MaterialLibrary` holding steel, iron and leather.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `Read_KeepsAKnownMaterial`
   - `Read_UnknownMaterialFallsBackToTheDefaultWithAWarning`: a save with `"material": "brass"` loads as `"steel"` (TestParts' default), with one warning containing `brass`.
   - Update the existing `Read` calls to pass `TestParts.Materials`.
-- [ ] **Step 2:** Run `tools/test.sh --filter WeaponJson`. Expected: compile failure, then FAIL on the fallback test.
-- [ ] **Step 3:** Implement it in the `Make` helper (line ~93) and the root path.
-- [ ] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
-- [ ] **Step 5:** Commit as `feat(core): unknown materials in saves fall back to the part's default`.
+- [x] **Step 2:** Run `tools/test.sh --filter WeaponJson`. Expected: compile failure, then FAIL on the fallback test.
+- [x] **Step 3:** Implement it in the `Make` helper (line ~93) and the root path.
+- [x] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
+- [x] **Step 5:** Commit as `feat(core): unknown materials in saves fall back to the part's default`.
 
 ### Task 5: Randomize picks materials
 
@@ -164,15 +164,15 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
 - Produces: `RandomWeapon.Build(PartLibrary lib, MaterialLibrary materials, Random rng, RandomOptions? options = null)`.
 - **Per part, after its spin:** if `rng.NextDouble() < 0.5`, use the default. Otherwise pick uniformly from `materials.Visible`, filtered by `AllowsMaterial` and kept in file order. If none is allowed, use the default.
 
-- [ ] **Step 1: Write the failing tests.**
+- [x] **Step 1: Write the failing tests.**
   - `SameSeed_GivesTheSameMaterials`
   - `Materials_AreAlwaysKnown`: over 20 seeds, every part's material is in `TestParts.Materials` or is its default.
   - `SomeParts_GetANonDefaultMaterial`: across 20 seeds, at least one part's material differs from its default.
   - Update `Make` and the other `Build` calls.
-- [ ] **Step 2:** Run `tools/test.sh --filter RandomWeapon`. Expected: compile failure, then FAIL on `SomeParts_...`.
-- [ ] **Step 3:** Implement it.
-- [ ] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
-- [ ] **Step 5:** Commit as `feat(core): Randomize picks materials`.
+- [x] **Step 2:** Run `tools/test.sh --filter RandomWeapon`. Expected: compile failure, then FAIL on `SomeParts_...`.
+- [x] **Step 3:** Implement it.
+- [x] **Step 4:** Run `tools/test.sh`. Expected: everything passes.
+- [x] **Step 5:** Commit as `feat(core): Randomize picks materials`.
 
 ### Task 6: Godot materials from data
 
@@ -189,11 +189,11 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
   - `WeaponMaterials.Ids` is removed.
   - `BuilderScreen.Materials => WeaponMaterials.Library`. It is passed to `WeaponJson.Read` and `RandomWeapon.Build`.
 
-- [ ] **Step 1: Add a smoke check** (in `Run`, before the first palette drag): `WeaponMaterials.Library.Visible.Count == 7` and `WeaponMaterials.Get("mithril")` is not the steel material.
-- [ ] **Step 2:** Run `dotnet build WeaponBuilder.csproj`. Expected: compile errors at the old `Read`/`Build` calls. Fix them, then run the smoke scene. Expected: it fails only on the new check.
-- [ ] **Step 3:** Implement it.
-- [ ] **Step 4:** Run the smoke scene. Expected: exit 0. Run `tools/test.sh`. Expected: everything passes.
-- [ ] **Step 5:** Commit as `feat: Godot materials come from data/materials.json`.
+- [x] **Step 1: Add a smoke check** (in `Run`, before the first palette drag): `WeaponMaterials.Library.Visible.Count == 7` and `WeaponMaterials.Get("mithril")` is not the steel material.
+- [x] **Step 2:** Run `dotnet build WeaponBuilder.csproj`. Expected: compile errors at the old `Read`/`Build` calls. Fix them, then run the smoke scene. Expected: it fails only on the new check.
+- [x] **Step 3:** Implement it.
+- [x] **Step 4:** Run the smoke scene. Expected: exit 0. Run `tools/test.sh`. Expected: everything passes.
+- [x] **Step 5:** Commit as `feat: Godot materials come from data/materials.json`.
 
 ### Task 7: Part icons and the icon palette
 
@@ -226,19 +226,19 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
   - Each button is 76×76, with `TooltipText` set to the name, `ExpandIcon = true`, and its text set to the part name until `SetIcon(string partId, Texture2D icon)` replaces the text with the icon.
   - `BuilderScreen` adds a `PartIcons` child and `public Task IconsReady`. That task fills icons palette tab by palette tab after `_Ready`.
 
-- [ ] **Step 1: Write the failing core tests.**
+- [x] **Step 1: Write the failing core tests.**
   - `IconKey_StartsWithThePartId`
   - `IconKey_IsStableForTheSamePart`
   - `IconKey_ChangesWhenAPrimitiveSizeChanges`: change a `Vector3` in the mesh. This catches the `IncludeFields` trap.
   - `IconKey_ChangesWithTheStyle`
-- [ ] **Step 2:** Run `tools/test.sh --filter IconKey`. Expected: compile failure, then everything passes after Step 3.
-- [ ] **Step 3:** Implement `IconKey`.
-- [ ] **Step 4: Add smoke checks** at the start of `Run`, after `await b.IconsReady`:
+- [x] **Step 2:** Run `tools/test.sh --filter IconKey`. Expected: compile failure, then everything passes after Step 3.
+- [x] **Step 3:** Implement `IconKey`.
+- [x] **Step 4: Add smoke checks** at the start of `Run`, after `await b.IconsReady`:
   - Every palette button has an `Icon` with width > 0 and empty `Text`.
   - **Corrupt cache** (Review Focus 4): write the bytes `"junk"` to the cache path for `straight_blade`. A fresh `await icons.Get(def)` returns a non-empty texture, and the file on disk is now a valid PNG.
   - Take a screenshot of the layout: `Shot("layout.png")`.
-- [ ] **Step 5:** Run `dotnet build WeaponBuilder.csproj` and the smoke scene. Expected: it fails on the new checks. Implement `PartIcons` and the palette changes. Run the smoke scene again. Expected: exit 0. Look at `layout.png` and check the angle against The Mountain's icons.
-- [ ] **Step 6:** Run `tools/test.sh`. Expected: everything passes. Commit as `feat: rendered part icons in a grid palette`.
+- [x] **Step 5:** Run `dotnet build WeaponBuilder.csproj` and the smoke scene. Expected: it fails on the new checks. Implement `PartIcons` and the palette changes. Run the smoke scene again. Expected: exit 0. Look at `layout.png` and check the angle against The Mountain's icons.
+- [x] **Step 6:** Run `tools/test.sh`. Expected: everything passes. Commit as `feat: rendered part icons in a grid palette`.
 
 ### Task 8: Materials panel
 
@@ -255,10 +255,10 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
   - The icon is a generated 40 px `ImageTexture`: a filled circle of the material colour, darkened towards the lower right so metals read as round.
 - **Placement:** `BuilderScreen.MaterialPanel` sits on the right-wide anchor, at `OffsetRight = -12`, below the toolbar (`OffsetTop = 56`), and about 96 px wide. `MaterialPressed` is wired to `Drag.BeginPaint` (Task 9). Until then, wire it to nothing.
 
-- [ ] **Step 1: Add smoke checks.** The panel's child button names equal the seven ids in order. Each button sits right of the 3D view's centre and doesn't overlap the toolbar's rect.
-- [ ] **Step 2:** Run the smoke scene. Expected: FAIL.
-- [ ] **Step 3:** Implement it.
-- [ ] **Step 4:** Run the smoke scene. Expected: exit 0. Commit as `feat: materials panel on the right`.
+- [x] **Step 1: Add smoke checks.** The panel's child button names equal the seven ids in order. Each button sits right of the 3D view's centre and doesn't overlap the toolbar's rect.
+- [x] **Step 2:** Run the smoke scene. Expected: FAIL.
+- [x] **Step 3:** Implement it.
+- [x] **Step 4:** Run the smoke scene. Expected: exit 0. Commit as `feat: materials panel on the right`.
 
 ### Task 9: Dragging a swatch onto a part
 
@@ -284,7 +284,7 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
   - `Cancel()` / `Abort()` also clear `Painting` and call `View.ClearPreview()`, so focus loss, New, Randomize and Load all clear it.
 - **Smoke helpers:** `Mouse` gains `bool shift = false`, which sets `ShiftPressed` on the event. Add `Paint(string materialId, Vector2 to, bool shift = false)`: press on the swatch, move in 3 steps, then release.
 
-- [ ] **Step 1: Add a smoke section `Painting()`** after `Randomize()`, starting from a weapon with a blade on `top`, an axe head on the blade's `tip`, a guard and a pommel:
+- [x] **Step 1: Add a smoke section `Painting()`** after `Randomize()`, starting from a weapon with a blade on `top`, an axe head on the blade's `tip`, a guard and a pommel:
   - Painting gold onto the blade paints the blade gold, and the axe head keeps its material.
   - Painting onto empty space changes no part's material.
   - Painting iron onto the grip (the root) paints the grip iron. (Review Focus 1)
@@ -293,20 +293,37 @@ These are the inputs most likely to bite that the spec doesn't spell out. Each h
   - **Interrupted paint** (Review Focus 2): press on gold and hover the blade, then send `NotificationApplicationFocusOut`. `Painting` is null and the blade's mesh shows its own material. Repeat with Escape. Then, mid-paint, call `b.Randomize(7)`. `Painting` is null, and the materials map equals that of a clean `Randomize(7)` taken just before.
   - **Survives Build and Load:** after `Build("Painted")` and `LoadFrom` of the saved file, the materials map (part path → material) is identical.
   - **Part drags still work:** dragging a pommel onto `bottom` after painting still attaches.
-- [ ] **Step 2:** Run the smoke scene. Expected: FAIL on the new checks.
-- [ ] **Step 3:** Implement it.
-- [ ] **Step 4:** Run the smoke scene. Expected: exit 0. Run `tools/test.sh`. Expected: everything passes.
-- [ ] **Step 5:** Commit as `feat: drag a material onto a part (Shift for its category)`.
+- [x] **Step 2:** Run the smoke scene. Expected: FAIL on the new checks.
+- [x] **Step 3:** Implement it.
+- [x] **Step 4:** Run the smoke scene. Expected: exit 0. Run `tools/test.sh`. Expected: everything passes.
+- [x] **Step 5:** Commit as `feat: drag a material onto a part (Shift for its category)`.
 
 ### Task 10: Screenshots, docs, finish
 
 **Files:**
 - Modify: `src/Debug/BuilderSmoke.cs`, `data/materials.json` (tuning only), `CLAUDE.md`, the roadmap, and this plan.
 
-- [ ] **Step 1: Material screenshots.** With `--out`, the smoke run paints the demo sword in each visible material, using `SetMaterialForCategory` on every category, and saves `material-<id>.png`. Run it to a scratch directory and look at all seven plus `layout.png`. Tune the colours, metallic and roughness in `data/materials.json` until each one reads as distinct (obsidian black and glassy, mithril pale blue). Re-run `tools/test.sh`.
-- [ ] **Step 2: Docs.**
+- [x] **Step 1: Material screenshots.** With `--out`, the smoke run paints the demo sword in each visible material, using `SetMaterialForCategory` on every category, and saves `material-<id>.png`. Run it to a scratch directory and look at all seven plus `layout.png`. Tune the colours, metallic and roughness in `data/materials.json` until each one reads as distinct (obsidian black and glassy, mithril pale blue). Re-run `tools/test.sh`.
+- [x] **Step 2: Docs.**
   - `CLAUDE.md` Layout section: mention `data/materials.json` and the icon cache in `user://icons`.
   - Tick roadmap section 2 and mark it **Done**.
   - Tick this plan's boxes and add an Outcome section.
-- [ ] **Step 3:** Commit as `docs: builder layout done`.
-- [ ] **Step 4: Final whole-branch review** (fresh reviewer, most capable model), as in executing-plans.
+- [x] **Step 3:** Commit as `docs: builder layout done`.
+- [x] **Step 4: Final whole-branch review** (fresh reviewer, most capable model), as in executing-plans.
+
+---
+
+## Outcome
+
+All tasks done on `feat/builder-layout`. Core tests: 95/95. The smoke scene passes every check.
+
+**Changes from the plan:**
+- **Palette tabs show their first part's icon** instead of their name, with the category name as the tooltip. The text titles forced the palette to 340 px; it is now 224 px.
+- **Metals reflect a light studio sky** (`StudioEnvironment.ReflectionSky`) in both the icons and the builder view. Against a transparent or dark background they rendered near-black. The view's background stays plain grey.
+- **The icon cache deletes a part's older icons** when it saves a new one, so `user://icons` doesn't grow with every edit.
+- **Swatches are 32 px**, so all seven fit a 1152×648 window. A smoke check guards this.
+- **While painting**, the target part also gets the hover outline.
+- **Material values were tuned from the screenshots:**
+  - iron is lighter (`#6E6E74`), so it doesn't look like obsidian;
+  - gold is brighter and a little less metallic (`#FFCC3A`, 0.75 / 0.3);
+  - obsidian has a purple tint and a slight sheen (`#1E1628`, 0.3 / 0.05).

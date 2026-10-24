@@ -3,11 +3,11 @@
 {
   "materials": [
     { "id": "bronze",   "name": "Bronze",   "color": "#B0703A", "metallic": 0.85, "roughness": 0.4,  "tags": ["metal"] },
-    { "id": "iron",     "name": "Iron",     "color": "#5A5A5E", "metallic": 0.7,  "roughness": 0.6,  "tags": ["metal"] },
+    { "id": "iron",     "name": "Iron",     "color": "#6E6E74", "metallic": 0.7,  "roughness": 0.55, "tags": ["metal"] },
     { "id": "steel",    "name": "Steel",    "color": "#B4B8BF", "metallic": 0.8,  "roughness": 0.3,  "tags": ["metal"] },
-    { "id": "gold",     "name": "Gold",     "color": "#E8B83A", "metallic": 0.95, "roughness": 0.25, "tags": ["metal"] },
+    { "id": "gold",     "name": "Gold",     "color": "#FFCC3A", "metallic": 0.75, "roughness": 0.3,  "tags": ["metal"] },
     { "id": "mithril",  "name": "Mithril",  "color": "#C8DCF0", "metallic": 0.9,  "roughness": 0.15, "tags": ["metal"] },
-    { "id": "obsidian", "name": "Obsidian", "color": "#141018", "metallic": 0.0,  "roughness": 0.08, "tags": ["stone"] },
+    { "id": "obsidian", "name": "Obsidian", "color": "#1E1628", "metallic": 0.3,  "roughness": 0.05, "tags": ["stone"] },
     { "id": "wood",     "name": "Wood",     "color": "#73492B", "metallic": 0.0,  "roughness": 0.8,  "tags": ["wood"] },
     { "id": "leather",  "name": "Leather",  "color": "#54331F", "metallic": 0.0,  "roughness": 0.9,  "tags": ["leather"], "hidden": true }
   ]

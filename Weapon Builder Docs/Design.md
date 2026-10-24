@@ -35,5 +35,5 @@ Of course this would mean more components added more weight, heavier weapons are
 ## Plans
 - [[2026-10-24-mvp-builder|MVP builder]]: snap, swap, remove, orbit, save to the gallery. **Done** (branch feat/mvp-builder).
 - [[2026-10-24-hardening-randomize|Hardening + Randomize]]: **Done** (branch feat/hardening-randomize).
-- [[2026-10-24-builder-layout|Builder layout: icon palette + materials panel]]: planned.
+- [[2026-10-24-builder-layout|Builder layout: icon palette + materials panel]]: **Done** (branch feat/builder-layout).
 - [[2026-10-24-extended-features|Extended features roadmap]]: hardening, randomize, builder layout (icon palette + materials panel), gallery browser, edges. Each gets its own detailed plan when it starts.

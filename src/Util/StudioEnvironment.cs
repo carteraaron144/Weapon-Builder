@@ -11,6 +11,8 @@ public static class StudioEnvironment
         {
             BackgroundMode = Environment.BGMode.Color,
             BackgroundColor = new Color(0.16f, 0.16f, 0.18f),
+            Sky = ReflectionSky(), // reflections only; the background stays plain grey
+            ReflectedLightSource = Environment.ReflectionSource.Sky,
             AmbientLightSource = Environment.AmbientSource.Color,
             AmbientLightColor = new Color(0.55f, 0.55f, 0.6f),
             AmbientLightEnergy = 0.6f,

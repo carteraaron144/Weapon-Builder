@@ -84,7 +84,7 @@ A **Randomize** button replaces the current weapon with a random one.
 
 The builder takes Spore's layout: part icons on the left, the weapon in the middle, materials on the right. This step merges the old "materials picker" and "part icons" features (agreed 2026-10-24).
 
-**Detailed plan:** [[2026-10-24-builder-layout]].
+**Detailed plan:** [[2026-10-24-builder-layout]]. **Done.**
 
 ### Layout
 
