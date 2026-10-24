@@ -107,6 +107,7 @@ public partial class DragController : Node3D
                 UpdateGhost();
                 break;
             case InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false }:
+                UpdateGhost(); // snap where it was let go, not where it last moved
                 Release(); // not marked handled, so the palette button that started it gets its release too
                 break;
             case InputEventKey { Pressed: true, Echo: false, Keycode: Key.R }:
@@ -127,7 +128,7 @@ public partial class DragController : Node3D
 
     public override void _Process(double delta)
     {
-        if (Dragging)
+        if (Dragging || screen.Capturing)
             return;
         var overGui = GetViewport().GuiGetHoveredControl() != null;
         var part = overGui ? null : screen.View.PartAt(mouse, screen.Camera);

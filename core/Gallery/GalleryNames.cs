@@ -18,4 +18,15 @@ public static class GalleryNames
         var s = slug.ToString().Trim('-');
         return $"{(s.Length == 0 ? "weapon" : s)}-{at:yyyyMMdd-HHmmss}";
     }
+
+    /// stem, or stem-2, stem-3... — the first that isn't taken.
+    public static string Unique(string stem, Func<string, bool> taken)
+    {
+        if (!taken(stem))
+            return stem;
+        var n = 2;
+        while (taken($"{stem}-{n}"))
+            n++;
+        return $"{stem}-{n}";
+    }
 }

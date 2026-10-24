@@ -16,12 +16,23 @@ public partial class OrbitCamera : Camera3D
 
     public override void _Ready() => Apply();
 
+    /// Where the camera is looking from, to put it back after a temporary framing.
+    public (Vector3 Pivot, float Distance) State
+    {
+        get => (Pivot, Distance);
+        set
+        {
+            (Pivot, Distance) = value;
+            Apply();
+        }
+    }
+
     /// Points at the centre of bounds from a distance that fits it.
     public void Frame(Aabb bounds)
     {
         Pivot = bounds.GetCenter();
         var radius = bounds.Size.Length() / 2f;
-        Distance = Mathf.Clamp(radius / Mathf.Tan(Mathf.DegToRad(Fov / 2f)) * 1.1f, MinDistance, MaxDistance);
+        Distance = Mathf.Clamp(radius / Mathf.Tan(Mathf.DegToRad(Fov / 2f)) * 1.25f, MinDistance, MaxDistance);
         Apply();
     }
 

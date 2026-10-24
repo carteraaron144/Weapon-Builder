@@ -11,4 +11,14 @@ public class GalleryNamesTests
 
     [Fact]
     public void FileStem_EmptyName_UsesWeapon() => Assert.Equal("weapon-20261024-140509", GalleryNames.FileStem("  ", At));
+
+    [Fact]
+    public void Unique_FreeStem_Unchanged() => Assert.Equal("axe-1", GalleryNames.Unique("axe-1", _ => false));
+
+    [Fact]
+    public void Unique_TakenStem_AddsCounter()
+    {
+        var taken = new HashSet<string> { "axe-1", "axe-1-2" };
+        Assert.Equal("axe-1-3", GalleryNames.Unique("axe-1", taken.Contains));
+    }
 }

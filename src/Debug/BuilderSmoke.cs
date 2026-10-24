@@ -66,6 +66,12 @@ public partial class BuilderSmoke : Node
         Check(At(root, "bottom") == "spike_pommel" && root.Children["bottom"].RotationDegrees == 90f,
             "R spins a snapped part by the socket's step");
 
+        await Mouse(await PaletteButton("ball_pommel"), MouseButton.Left, true);
+        await Move(new Vector2(1100, 600));
+        await Mouse(Socket(root, "bottom"), MouseButton.Left, false);
+        await Frames(4);
+        Check(At(root, "bottom") == "ball_pommel", "releasing over a socket attaches, even with no move there first");
+
         await Palette("long_haft", RootScreen());
         root = b.Weapon.Root;
         Check(root.PartId == "long_haft", "the root swaps to the long haft");
@@ -76,19 +82,70 @@ public partial class BuilderSmoke : Node
         await DragPart(Centre(root), new Vector2(1100, 600));
         Check(Describe(b.Weapon.Root) == before, "dragging the root does nothing");
 
+        await Gallery();
+
         if (outDir != null)
             await Shot("final.png");
+    }
+
+    async Task Gallery()
+    {
+        const string dir = "user://smoke_gallery";
+        ClearDir(dir);
+        b.GalleryDir = dir;
+
+        await Mouse(b.BuildButton.GetGlobalRect().GetCenter(), MouseButton.Left, true);
+        await Mouse(b.BuildButton.GetGlobalRect().GetCenter(), MouseButton.Left, false);
+        Check(b.NameDialog.Visible, "Build asks for a name");
+        Check(b.NameEdit.Text == WeaponJson.DefaultName, "...starting from the weapon's name");
+        b.NameEdit.Text = "Smoke Axe";
+        var ok = b.NameDialog.Position + b.NameDialog.GetOkButton().GetGlobalRect().GetCenter();
+        await Mouse(ok, MouseButton.Left, true);
+        await Mouse(ok, MouseButton.Left, false);
+        await Frames(10);
+        Check(b.Status.Text.StartsWith("Saved smoke-axe-"), $"Save writes to the gallery and says so (\"{b.Status.Text}\")");
+        Check(b.UiLayer.Visible, "...and the UI comes back after the thumbnail");
+
+        var first = b.Status.Text["Saved ".Length..];
+        var second = await b.Build("Smoke Axe");
+        Check(first != second, $"saving the same name twice keeps both ({first}, {second})");
+        Check(FileAccess.FileExists($"{dir}/{first}.json") && FileAccess.FileExists($"{dir}/{second}.json"), "...both JSON files exist");
+        var png = Image.LoadFromFile($"{dir}/{second}.png");
+        Check(png != null && png.GetWidth() == GallerySaver.ThumbnailSize && png.GetHeight() == GallerySaver.ThumbnailSize,
+            "the thumbnail is 256 x 256");
+        if (outDir != null)
+            png?.SavePng($"{outDir}/thumbnail.png");
+
+        var saved = Describe(b.Weapon.Root);
+        b.NewWeapon();
+        b.LoadFrom($"{dir}/{second}.json");
+        await Frames(4);
+        Check(Describe(b.Weapon.Root) == saved && b.Weapon.Name == "Smoke Axe", "loading a saved weapon gives the same weapon");
+        ClearDir(dir);
+    }
+
+    static void ClearDir(string dir)
+    {
+        if (!DirAccess.DirExistsAbsolute(dir))
+            return;
+        foreach (var f in DirAccess.GetFilesAt(dir))
+            DirAccess.RemoveAbsolute($"{dir}/{f}");
     }
 
     // --- steps ---
 
     async Task Palette(string partId, Vector2 to, bool spin = false, string? shot = null)
     {
+        await Drag(await PaletteButton(partId), to, spin, shot);
+    }
+
+    /// Shows the part's tab and returns its button's centre.
+    async Task<Vector2> PaletteButton(string partId)
+    {
         var category = b.Lib.Get(partId).Category;
         b.Palette.CurrentTab = Array.IndexOf(PartPalette.Tabs, category);
-        await Frames(2);
-        var button = b.Palette.GetNode<Button>($"{category}/{partId}");
-        await Drag(button.GetGlobalRect().GetCenter(), to, spin, shot);
+        await Frames(2); // let the tab lay out
+        return b.Palette.GetNode<Button>($"{category}/{partId}").GetGlobalRect().GetCenter();
     }
 
     async Task DragPart(Vector2 from, Vector2 to) => await Drag(from, to, false, null);
@@ -113,6 +170,7 @@ public partial class BuilderSmoke : Node
 
     async Task Mouse(Vector2 at, MouseButton button, bool pressed)
     {
+        Input.WarpMouse(at);
         Input.ParseInputEvent(new InputEventMouseButton
         {
             Position = at, GlobalPosition = at, ButtonIndex = button, Pressed = pressed,
@@ -123,6 +181,7 @@ public partial class BuilderSmoke : Node
 
     async Task Move(Vector2 at)
     {
+        Input.WarpMouse(at);
         Input.ParseInputEvent(new InputEventMouseMotion { Position = at, GlobalPosition = at, ButtonMask = MouseButtonMask.Left });
         await Frames(2);
     }
