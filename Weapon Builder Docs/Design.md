@@ -31,5 +31,5 @@ Of course this would mean more components added more weight, heavier weapons are
 - **Randomize:** a random walk down the tree: fill required sockets, fill optional ones by chance, cap the depth, and pick materials.
 
 ## Plans
-- [[2026-10-24-mvp-builder|MVP builder]]: snap, swap, remove, orbit, save to the gallery. **← current**
+- [[2026-10-24-mvp-builder|MVP builder]]: snap, swap, remove, orbit, save to the gallery. **Done** (branch feat/mvp-builder).
 - Later: materials, edges, randomize, gallery browser, part icons.

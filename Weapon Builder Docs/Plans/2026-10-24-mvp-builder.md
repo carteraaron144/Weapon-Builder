@@ -1,6 +1,6 @@
 # MVP Weapon Builder Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 >
 > The repo-root `CLAUDE.md` is currently a stale copy of another project's (The Mountain) — ignore it until Task 1 replaces it.
 
@@ -67,8 +67,8 @@ tools/shot.gd                 headless-ish screenshot of a scene for visual chec
 
 ### Task 0: Toolchain (needs the user's OK — downloads)
 
-- [ ] **Step 1:** Ask the user to install (or approve installing) the .NET SDK version Godot 4.7 requires, and the **Godot 4.7.2 .NET** macOS build (alongside the existing standard `Godot.app`; e.g. `/Applications/Godot_mono.app`).
-- [ ] **Step 2:** Verify: `dotnet --list-sdks` lists it; `/Applications/Godot_mono.app/Contents/MacOS/Godot --version` prints `4.7.2.stable.mono...`.
+- [x] **Step 1:** Ask the user to install (or approve installing) the .NET SDK version Godot 4.7 requires, and the **Godot 4.7.2 .NET** macOS build (alongside the existing standard `Godot.app`; e.g. `/Applications/Godot_mono.app`).
+- [x] **Step 2:** Verify: `dotnet --list-sdks` lists it; `/Applications/Godot_mono.app/Contents/MacOS/Godot --version` prints `4.7.2.stable.mono...`.
 
 ### Task 1: Project scaffolding + first core test
 
@@ -90,11 +90,11 @@ public static class Fitting { public static bool Accepts(SocketDef socket, PartD
 ```
 Convention: a part's origin is its attach point and it grows along **+Y**; a socket's +Y points away from its owner.
 
-- [ ] **Step 1:** `WeaponBuilder.csproj`: add `<Compile Remove="core/**;tests/**" />` and `<ProjectReference Include="core/WeaponBuilder.Core.csproj" />`. Core and tests target the same framework as the Godot csproj. Add both projects to the `.sln`.
-- [ ] **Step 2: Failing tests** `FittingTests`: `Accepts_SharedTag_True` (socket `[blade, head]`, part `[head]`), `Accepts_NoSharedTag_False`, `Accepts_EmptyAccepts_False`.
-- [ ] **Step 3:** `tools/test.sh` runs `dotnet test tests/WeaponBuilder.Core.Tests "$@"` — expect FAIL (no `Fitting`).
-- [ ] **Step 4:** Implement `Fitting.Accepts`; run `tools/test.sh` → PASS. Also open the Godot project headless once (`--headless --path . --build-solutions --quit`) → exits 0.
-- [ ] **Step 5: Commit** `chore: scaffold Godot C# project, core library and tests`.
+- [x] **Step 1:** `WeaponBuilder.csproj`: add `<Compile Remove="core/**;tests/**" />` and `<ProjectReference Include="core/WeaponBuilder.Core.csproj" />`. Core and tests target the same framework as the Godot csproj. Add both projects to the `.sln`.
+- [x] **Step 2: Failing tests** `FittingTests`: `Accepts_SharedTag_True` (socket `[blade, head]`, part `[head]`), `Accepts_NoSharedTag_False`, `Accepts_EmptyAccepts_False`.
+- [x] **Step 3:** `tools/test.sh` runs `dotnet test tests/WeaponBuilder.Core.Tests "$@"` — expect FAIL (no `Fitting`).
+- [x] **Step 4:** Implement `Fitting.Accepts`; run `tools/test.sh` → PASS. Also open the Godot project headless once (`--headless --path . --build-solutions --quit`) → exits 0.
+- [x] **Step 5: Commit** `chore: scaffold Godot C# project, core library and tests`.
 
 ### Task 2: Scale fitting
 
@@ -102,8 +102,8 @@ Convention: a part's origin is its attach point and it grows along **+Y**; a soc
 
 **Produces:** `public static float Fitting.Scale(SocketDef socket, PartDef part)`; `public const float MinScale = 0.25f, MaxScale = 4f;`
 
-- [ ] **Step 1: Failing tests:** `Scale_UsesTighterAxis` (socket L1 W0.2, part L2 W0.1 → `0.5f`), `Scale_ClampsLow` (socket L0.1 W0.1, part L10 W10 → `0.25f`), `Scale_ClampsHigh` (socket L10 W10, part L0.1 W0.1 → `4f`), `Scale_Equal_IsOne`.
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): fit-scale parts to sockets`.
+- [x] **Step 1: Failing tests:** `Scale_UsesTighterAxis` (socket L1 W0.2, part L2 W0.1 → `0.5f`), `Scale_ClampsLow` (socket L0.1 W0.1, part L10 W10 → `0.25f`), `Scale_ClampsHigh` (socket L10 W10, part L0.1 W0.1 → `4f`), `Scale_Equal_IsOne`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): fit-scale parts to sockets`.
 
 ### Task 3: Weapon tree and edit rules
 
@@ -126,7 +126,7 @@ public sealed class WeaponEditor(PartLibrary lib) {
 ```
 New parts get `Material = def.DefaultMaterial`, `RotationDegrees = 0`.
 
-- [ ] **Step 1: Failing tests** (build a tiny library in the test: `grip` [handle] with sockets `top` [blade, head], `guard` [crossguard], `bottom` [pommel]; `blade` [blade] with socket `tip` [head]; `axe` [head]; `bar` [crossguard]; `ball` [pommel]; `pike` [handle] with only `top`):
+- [x] **Step 1: Failing tests** (build a tiny library in the test: `grip` [handle] with sockets `top` [blade, head], `guard` [crossguard], `bottom` [pommel]; `blade` [blade] with socket `tip` [head]; `axe` [head]; `bar` [crossguard]; `ball` [pommel]; `pike` [handle] with only `top`):
   - `Attach_EmptyCompatibleSocket_Adds`
   - `Attach_IncompatibleSocket_RefusesAndChangesNothing`
   - `Attach_UnknownSocket_Refuses`
@@ -137,7 +137,7 @@ New parts get `Material = def.DefaultMaterial`, `RotationDegrees = 0`.
   - `SwapRoot_NonHandle_Refuses`
   - `Detach_Root_ReturnsNull_TreeUnchanged`
   - `Detach_Child_RemovesSubtree`
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): weapon tree with attach, swap and detach`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): weapon tree with attach, swap and detach`.
 
 ### Task 4: Part files and weapon JSON
 
@@ -162,14 +162,14 @@ Part file (camelCase; vectors as `[x, y, z]`; `rotation` in degrees; `sides` onl
 Primitive `size` per shape: `box` = extents; `prism` = [top radius, height, bottom radius]; `sphere` = [radius, rings, _]. `scale` and `rotation` default to `[1,1,1]` / `[0,0,0]`.
 Weapon file: `{ "version": 1, "name": "...", "root": { "part": "grip", "material": "leather", "rotation": 0, "children": { "top": { ... } } } }`.
 
-- [ ] **Step 1: Failing tests:**
+- [x] **Step 1: Failing tests:**
   - `Load_SkipsUnderscoreFiles`, `Load_DuplicateId_Error`, `Load_NonPositiveLength_Error`, `Load_SocketWithNoAccepts_Error`, `Load_ParsesSocketVectorsAndDefaults`
   - `RoundTrip_PreservesTree` (3-level weapon → Write → Read → same part ids, materials, rotations, socket keys)
   - `Read_UnknownChildPart_DropsSubtreeWithWarning`
   - `Read_UnknownRoot_UsesDefaultRootWithWarning`
   - `Read_ChildOnSocketThatNoLongerAccepts_DroppedWithWarning`
   - `FileStem_Slugifies` (`"Big  Axe!"`, 2026-10-24 14:05:09 → `"big-axe-20261024-140509"`), `FileStem_EmptyName_UsesWeapon`
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement with System.Text.Json. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): load part files, save and load weapons`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement with System.Text.Json. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): load part files, save and load weapons`.
 
 ### Task 5: Layout
 
@@ -191,8 +191,8 @@ world = Matrix4x4.CreateScale(Fitting.Scale(socket, def))
 ```
 `SocketLocal = CreateFromYawPitchRoll(y, x, z) * CreateTranslation(position)`.
 
-- [ ] **Step 1: Failing tests** (assert with a 1e-5 tolerance helper): `Root_IsIdentity`, `Child_SitsAtSocketPosition`, `Child_ScaleInheritedByGrandchild` (grandchild world-space size = product of both scales), `SocketRotation_Applied` (socket rotated 90° about Z → child +Y maps to world −X), `PartRotation_SpinsAboutSocketAxis`, `Sockets_IncludeOccupiedAndEmpty`.
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): compute part and socket transforms`.
+- [x] **Step 1: Failing tests** (assert with a 1e-5 tolerance helper): `Root_IsIdentity`, `Child_SitsAtSocketPosition`, `Child_ScaleInheritedByGrandchild` (grandchild world-space size = product of both scales), `SocketRotation_Applied` (socket rotated 90° about Z → child +Y maps to world −X), `PartRotation_SpinsAboutSocketAxis`, `Sockets_IncludeOccupiedAndEmpty`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Implement. **Step 4:** Run → PASS. **Step 5: Commit** `feat(core): compute part and socket transforms`.
 
 ### Task 6: Meshes, materials and the MVP parts
 
@@ -212,9 +212,9 @@ public static PartLibrary PartFiles.LoadAll();                      // reads res
 - `MeshKit.FlatMesh`: port of `~/Projects/the-mountain/tools/mesh_kit.gd` `flat_mesh` (lines 10–50; per-triangle normal, snap to 1e-4, flip to agree with source normal, skip degenerate, re-index). Primitives: box → `BoxMesh`, prism → `CylinderMesh` (radial segments = sides, 1 ring), sphere → `SphereMesh` (low segments).
 - `WeaponMaterials`: `StandardMaterial3D`, `Uv1Triplanar = true`, `Uv1WorldTriplanar = false` (object space), flat albedo colours for now (textures are a later plan).
 - Parts (id: tags; sockets): `grip` (handle; top[blade,head], guard[crossguard], bottom[pommel]); `long_haft` (handle; top[blade,head], bottom[pommel]); `bar_guard`, `curved_guard`, `disc_guard` (crossguard); `ball_pommel`, `spike_pommel`, `ring_pommel` (pommel); `straight_blade`, `broad_blade` (blade); `spear_head`, `axe_head` (head; `spear_head` also tag blade). The grip's `guard` and `top` sockets share its top end; guard parts are flat (thin in Y), so the blade passes through them visually.
-- [ ] **Step 1: Failing test** `DataPartsTests.AllShippedPartsLoadWithoutErrors` (reads `../../data/parts` from the test project's directory) and `DataParts_EveryHandleHasATopSocket`.
-- [ ] **Step 2:** Run → FAIL. **Step 3:** Write the JSON files and the Godot-side classes. `PartGallery` lays every part in a row with its default material. **Step 4:** `tools/test.sh` → PASS; render `scenes/part_gallery.tscn` with `tools/shot.gd` (Godot .NET, not headless, `-- --scene … --out <scratch>/parts.png`) and look at it: every part visible, flat-shaded, nothing inside-out.
-- [ ] **Step 5: Commit** `feat: part meshes, materials and the MVP part set`.
+- [x] **Step 1: Failing test** `DataPartsTests.AllShippedPartsLoadWithoutErrors` (reads `../../data/parts` from the test project's directory) and `DataParts_EveryHandleHasATopSocket`.
+- [x] **Step 2:** Run → FAIL. **Step 3:** Write the JSON files and the Godot-side classes. `PartGallery` lays every part in a row with its default material. **Step 4:** `tools/test.sh` → PASS; render `scenes/part_gallery.tscn` with `tools/shot.gd` (Godot .NET, not headless, `-- --scene … --out <scratch>/parts.png`) and look at it: every part visible, flat-shaded, nothing inside-out.
+- [x] **Step 5: Commit** `feat: part meshes, materials and the MVP part set`.
 
 ### Task 7: Weapon view and orbit camera
 
@@ -235,8 +235,8 @@ public partial class OrbitCamera : Camera3D {
 public partial class BuilderScreen : Node { public Weapon Weapon; public PartLibrary Lib; public WeaponEditor Editor; public void Refresh(); }
 ```
 Builder starts with a new weapon: root `grip`, name "Unnamed Weapon".
-- [ ] **Step 1:** Implement. **Step 2:** Verify: run `scenes/builder.tscn`; a hard-coded test weapon (grip + bar_guard + straight_blade + ball_pommel, built in `_Ready` when launched with `-- --demo`) renders assembled correctly; orbit and zoom work; shot saved to scratch looks right.
-- [ ] **Step 3: Commit** `feat: render weapons and orbit around them`.
+- [x] **Step 1:** Implement. **Step 2:** Verify: run `scenes/builder.tscn`; a hard-coded test weapon (grip + bar_guard + straight_blade + ball_pommel, built in `_Ready` when launched with `-- --demo`) renders assembled correctly; orbit and zoom work; shot saved to scratch looks right.
+- [x] **Step 3: Commit** `feat: render weapons and orbit around them`.
 
 ### Task 8: Palette, drag and snap
 
@@ -251,7 +251,7 @@ Builder starts with a new weapon: root `grip`, name "Unnamed Weapon".
 - Release: snapped → `Attach` (or `SwapRoot`) then `Refresh()`; not snapped → nothing.
 - Pressing an existing non-root part: `Detach` it and its subtree, and drag that subtree as the ghost; release on a compatible socket re-attaches it (with its children), release elsewhere removes it. Pressing the root does nothing.
 - Hover (no drag): outline on the part under the cursor.
-- [ ] **Step 1:** Implement. **Step 2:** Verify manually in the running scene, each as a checkbox in the commit message body: build grip+guard+blade+pommel; swap blade for axe_head (amber marker); drop a pommel on the top socket → no marker, nothing happens; drag the blade off → removed with its tip child; swap root to long_haft → guard dropped, blade kept; drag the root → nothing. **Step 3:** `tools/test.sh` still PASS. **Step 4: Commit** `feat: drag parts onto sockets, swap and remove`.
+- [x] **Step 1:** Implement. **Step 2:** Verify manually in the running scene, each as a checkbox in the commit message body: build grip+guard+blade+pommel; swap blade for axe_head (amber marker); drop a pommel on the top socket → no marker, nothing happens; drag the blade off → removed with its tip child; swap root to long_haft → guard dropped, blade kept; drag the root → nothing. **Step 3:** `tools/test.sh` still PASS. **Step 4: Commit** `feat: drag parts onto sockets, swap and remove`.
 
 ### Task 9: Build → gallery
 
@@ -260,8 +260,8 @@ Builder starts with a new weapon: root `grip`, name "Unnamed Weapon".
 **Produces:** `public static string GallerySaver.Save(Weapon w, Image thumbnail)` → returns the file stem; writes `user://gallery/<stem>.json` (`WeaponJson.Write`) and `<stem>.png`.
 - Toolbar: **Build** (opens a name `LineEdit` dialog, default current name; Save writes and shows "Saved <stem>" for 3 s), **New** (resets to a bare `grip`).
 - Thumbnail: hide markers/outline, frame the camera on `WeaponView.Bounds`, wait one frame, grab the viewport image, crop to a centred square, resize to 256×256.
-- [ ] **Step 1:** Implement. **Step 2:** Verify: Build twice with the same name → two files with different stems; open a JSON and check it matches the weapon; the PNG shows the weapon centred. Read one back via a temporary `--load <path>` debug arg into the builder → same weapon renders.
-- [ ] **Step 3: Commit** `feat: save built weapons to the gallery`.
+- [x] **Step 1:** Implement. **Step 2:** Verify: Build twice with the same name → two files with different stems; open a JSON and check it matches the weapon; the PNG shows the weapon centred. Read one back via a temporary `--load <path>` debug arg into the builder → same weapon renders.
+- [x] **Step 3: Commit** `feat: save built weapons to the gallery`.
 
 ---
 
