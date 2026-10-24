@@ -7,8 +7,8 @@ namespace WeaponBuilder.Core.Tests;
 static class TestParts
 {
     public static SocketDef Socket(string name, string[] accepts, float length = 1f, float width = 0.1f,
-        Vector3? position = null, Vector3? rotation = null, float step = 0f) =>
-        new(name, position ?? Vector3.Zero, rotation ?? Vector3.Zero, accepts, length, width, false, step);
+        Vector3? position = null, Vector3? rotation = null, float step = 0f, bool required = false) =>
+        new(name, position ?? Vector3.Zero, rotation ?? Vector3.Zero, accepts, length, width, required, step);
 
     public static PartDef Part(string id, string[] tags, float length = 1f, float width = 0.1f,
         params SocketDef[] sockets) =>
