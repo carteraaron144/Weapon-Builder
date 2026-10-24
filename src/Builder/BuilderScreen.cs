@@ -7,7 +7,8 @@ using WeaponBuilder.Core;
 namespace WeaponBuilder;
 
 /// The builder: owns the weapon being built, the part library, the view of it, the palette, dragging and the
-/// Build/New toolbar. Run with `-- --demo` to start with a sample sword, or `-- --load <path>` to open a saved weapon.
+/// New/Randomize/Build toolbar. Run with `-- --demo` to start with a sample sword, `-- --seed <n>` for a random
+/// weapon, or `-- --load <path>` to open a saved weapon.
 public partial class BuilderScreen : Node3D
 {
     public const string DefaultHandle = "grip";
@@ -27,6 +28,7 @@ public partial class BuilderScreen : Node3D
     public CanvasLayer UiLayer { get; private set; } = null!;
     public Button BuildButton { get; private set; } = null!;
     public Button NewButton { get; private set; } = null!;
+    public Button RandomizeButton { get; private set; } = null!;
     public ConfirmationDialog NameDialog { get; private set; } = null!;
     public LineEdit NameEdit { get; private set; } = null!;
     public Label Status { get; private set; } = null!;
@@ -62,9 +64,14 @@ public partial class BuilderScreen : Node3D
         NewWeapon();
         var args = OS.GetCmdlineUserArgs();
         var load = Array.IndexOf(args, "--load");
+        var seedAt = Array.IndexOf(args, "--seed");
         if (load >= 0 && load + 1 < args.Length)
         {
             LoadFrom(args[load + 1]);
+        }
+        else if (seedAt >= 0 && seedAt + 1 < args.Length && int.TryParse(args[seedAt + 1], out var seed))
+        {
+            Randomize(seed);
         }
         else if (args.Contains("--demo"))
         {
@@ -98,9 +105,11 @@ public partial class BuilderScreen : Node3D
         toolbar.OffsetRight = -12;
         toolbar.OffsetTop = 12;
         toolbar.AddChild(NewButton = new Button { Name = "New", Text = "New" });
+        toolbar.AddChild(RandomizeButton = new Button { Name = "Randomize", Text = "Randomize" });
         toolbar.AddChild(BuildButton = new Button { Name = "Build", Text = "Build" });
         ui.AddChild(toolbar);
         NewButton.Pressed += NewWeapon;
+        RandomizeButton.Pressed += () => Randomize();
         BuildButton.Pressed += AskName;
 
         Status = new Label { Name = "Status", HorizontalAlignment = HorizontalAlignment.Center };
@@ -122,6 +131,18 @@ public partial class BuilderScreen : Node3D
         Weapon = new Weapon(WeaponJson.DefaultName, new WeaponPart(RootHandle, Lib.Get(RootHandle).DefaultMaterial));
         Refresh();
         Camera.Frame(NewWeaponFrame);
+    }
+
+    /// Replaces the weapon with a random one and shows the seed. Returns the seed used.
+    public int Randomize(int? seed = null)
+    {
+        Drag.Cancel();
+        var used = seed ?? System.Random.Shared.Next();
+        Weapon = RandomWeapon.Build(Lib, new System.Random(used));
+        Refresh();
+        Camera.Frame(View.Bounds);
+        ShowStatus($"Seed {used}");
+        return used;
     }
 
     /// Redraws the weapon after an edit.

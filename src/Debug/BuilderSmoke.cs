@@ -93,6 +93,7 @@ public partial class BuilderSmoke : Node
 
         await EdgeCases();
         await Gallery();
+        await Randomize();
 
         if (outDir != null)
             await Shot("final.png");
@@ -166,6 +167,37 @@ public partial class BuilderSmoke : Node
         b.LoadFrom("user://nope.json");
         Check(b.Status.Text.StartsWith("Couldn't open"), $"loading a missing file says so (\"{b.Status.Text}\")");
         Check(Describe(b.Weapon.Root) == before, "...and the weapon is unchanged");
+        ClearDir(dir);
+    }
+
+    async Task Randomize()
+    {
+        const string dir = "user://smoke_gallery";
+        b.GalleryDir = dir;
+        var click = b.RandomizeButton.GetGlobalRect().GetCenter();
+        await Mouse(click, MouseButton.Left, true);
+        await Mouse(click, MouseButton.Left, false);
+        Check(b.Status.Text.StartsWith("Seed "), $"Randomize shows its seed (\"{b.Status.Text}\")");
+        Check(b.Weapon.Root.Children.ContainsKey("top"), "...and the random weapon has something on top");
+
+        b.Randomize(42);
+        var seeded = Describe(b.Weapon.Root);
+        b.Randomize(42);
+        Check(Describe(b.Weapon.Root) == seeded, $"the same seed gives the same weapon ({seeded})");
+
+        await Reframe();
+        var at = Centre(b.Weapon.Root.Children["top"]);
+        await Mouse(at, MouseButton.Left, true);
+        await Move(at + new Vector2(10, 0));
+        Check(b.Drag.Dragging, "a random weapon's part can be picked up");
+        b.Randomize(42);
+        await Frames(2);
+        Check(!b.Drag.Dragging && Describe(b.Weapon.Root) == seeded, "Randomize mid-drag drops the drag and the old part");
+        await Mouse(at, MouseButton.Left, false);
+        Check(Describe(b.Weapon.Root) == seeded, "...and letting go afterwards changes nothing");
+
+        var stem = await b.Build("Random");
+        Check(stem != null && stem.StartsWith("random-"), $"a random weapon can be built ({stem})");
         ClearDir(dir);
     }
 

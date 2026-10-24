@@ -44,4 +44,9 @@ public class DataPartsTests
         var lib = LoadShipped(out _);
         Assert.All(lib.All.SelectMany(p => p.Sockets), s => Assert.Contains(lib.All, p => Fitting.Accepts(s, p)));
     }
+
+    [Fact]
+    public void DataParts_EveryHandleRequiresItsTop() =>
+        Assert.All(LoadShipped(out _).All.Where(p => p.Tags.Contains(WeaponEditor.HandleTag)),
+            h => Assert.True(h.Sockets.Single(s => s.Name == "top").Required, $"{h.Id}.top should be required"));
 }
