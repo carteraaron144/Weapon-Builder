@@ -315,7 +315,7 @@ public static class RandomWeapon
 
 ## Outcome
 
-All tasks are done. Core tests pass 70/70, and the smoke scene passes 45 checks. The macOS export runs.
+All tasks are done. Core tests pass 70/70, and the smoke scene passes 47 checks. The macOS export runs.
 
 **Changes from the plan**
 - Task 3 has no in-app check for sockets with different steps, because every shipped socket uses a 90° step. The core tests cover it.
