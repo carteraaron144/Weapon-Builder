@@ -6,7 +6,7 @@ namespace WeaponBuilder.Core.Tests;
 public class WeaponJsonTests
 {
     static readonly PartLibrary Lib = new([
-        Part("grip", ["handle"], 1f, 0.1f, Socket("top", ["blade", "head"]), Socket("bottom", ["pommel"])),
+        Part("grip", ["handle"], 1f, 0.1f, Socket("top", ["blade", "head"], step: 90f), Socket("bottom", ["pommel"])),
         Part("blade", ["blade"], 1f, 0.1f, Socket("tip", ["head"])),
         Part("axe", ["head"]),
         Part("ball", ["pommel"]),
@@ -81,5 +81,13 @@ public class WeaponJsonTests
         var w = WeaponJson.Read(json, Lib, "grip", out var warnings);
         Assert.Empty(w.Root.Children);
         Assert.Contains(warnings, x => x.Contains("grip.top"));
+    }
+
+    [Fact]
+    public void Read_RotationSnapsToTheSocketStep()
+    {
+        var json = """{ "version": 1, "root": { "part": "grip", "children": { "top": { "part": "blade", "rotation": 45 } } } }""";
+        var w = WeaponJson.Read(json, Lib, "grip", out _);
+        Assert.Equal(90f, w.Root.Children["top"].RotationDegrees);
     }
 }

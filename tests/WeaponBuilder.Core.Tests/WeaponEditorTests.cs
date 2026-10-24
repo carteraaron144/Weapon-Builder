@@ -135,4 +135,34 @@ public class WeaponEditorTests
         Assert.Equal("tip", socket);
         Assert.Null(editor.FindParent(weapon, Root, out _));
     }
+
+    [Fact]
+    public void Attach_SnapsRotationToTheSocketStep()
+    {
+        var lib = new PartLibrary([Part("h", ["handle"], 1f, 0.1f, Socket("top", ["blade"], step: 120f)), Part("b", ["blade"])]);
+        var root = new WeaponPart("h", "steel");
+        var blade = new WeaponPart("b", "steel") { RotationDegrees = 90f };
+        Assert.True(new WeaponEditor(lib).Attach(root, "top", blade).Ok);
+        Assert.Equal(120f, blade.RotationDegrees);
+    }
+
+    [Fact]
+    public void Attach_CarriedChildRotationSnapsToNewSocketStep()
+    {
+        var lib = new PartLibrary([
+            Part("h", ["handle"], 1f, 0.1f, Socket("top", ["blade"])),
+            Part("a", ["blade"], 1f, 0.1f, Socket("tip", ["head"], step: 90f)),
+            Part("b", ["blade"], 1f, 0.1f, Socket("tip", ["head"], step: 120f)),
+            Part("x", ["head"]),
+        ]);
+        var editor = new WeaponEditor(lib);
+        var root = new WeaponPart("h", "steel");
+        editor.Attach(root, "top", "a");
+        var head = new WeaponPart("x", "steel") { RotationDegrees = 90f };
+        editor.Attach(root.Children["top"], "tip", head);
+        Assert.Equal(90f, head.RotationDegrees);
+        editor.Attach(root, "top", "b");
+        Assert.Same(head, root.Children["top"].Children["tip"]);
+        Assert.Equal(120f, head.RotationDegrees);
+    }
 }

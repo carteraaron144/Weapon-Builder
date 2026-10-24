@@ -19,7 +19,7 @@ public sealed class WeaponEditor(PartLibrary lib)
             : AttachResult.Refused;
 
     /// Puts a part (with any children it has) on the parent's socket. Refused if the socket doesn't
-    /// exist or doesn't accept the part. A part already there is replaced; its children move to the
+    /// exist or doesn't accept the part. The part's spin is snapped to the socket's step. A part already there is replaced; its children move to the
     /// new part where it has a free socket of the same name that accepts them, and are dropped otherwise.
     public AttachResult Attach(WeaponPart parent, string socket, WeaponPart part)
     {
@@ -31,6 +31,7 @@ public sealed class WeaponEditor(PartLibrary lib)
 
         parent.Children.TryGetValue(socket, out var old);
         var dropped = old == null ? [] : CarryChildren(old, part);
+        part.RotationDegrees = Fitting.SnapRotation(part.RotationDegrees, socketDef.RotationStepDegrees);
         parent.Children[socket] = part;
         return new AttachResult(true, old, dropped);
     }
@@ -89,7 +90,10 @@ public sealed class WeaponEditor(PartLibrary lib)
             var socket = toDef.Sockets.FirstOrDefault(s => s.Name == name);
             if (socket != null && !to.Children.ContainsKey(name)
                 && lib.TryGet(child.PartId, out var childDef) && Fitting.Accepts(socket, childDef))
+            {
+                child.RotationDegrees = Fitting.SnapRotation(child.RotationDegrees, socket.RotationStepDegrees);
                 to.Children[name] = child;
+            }
             else
                 dropped.Add(child);
         }

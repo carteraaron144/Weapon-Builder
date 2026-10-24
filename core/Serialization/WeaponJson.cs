@@ -82,6 +82,7 @@ public static class WeaponJson
                 continue;
             }
             var part = FromDto(dto, def);
+            part.RotationDegrees = Fitting.SnapRotation(part.RotationDegrees, socket.RotationStepDegrees);
             parent.Children[socketName] = part;
             if (dto.Children != null)
                 AddChildren(part, dto.Children, lib, warnings);

@@ -35,4 +35,13 @@ public class FittingScaleTests
     [Fact]
     public void Scale_Equal_IsOne() =>
         Assert.Equal(1f, Fitting.Scale(Socket("s", ["x"], 0.5f, 0.05f), Part("p", ["x"], 0.5f, 0.05f)), 5);
+
+    [Theory]
+    [InlineData(90f, 0f, 0f)]       // no step: no spin
+    [InlineData(90f, 120f, 120f)]   // nearest multiple
+    [InlineData(170f, 120f, 120f)]
+    [InlineData(300f, 120f, 0f)]    // 360 wraps to 0
+    [InlineData(-90f, 90f, 270f)]
+    public void SnapRotation(float degrees, float step, float expected) =>
+        Assert.Equal(expected, Fitting.SnapRotation(degrees, step), 3);
 }

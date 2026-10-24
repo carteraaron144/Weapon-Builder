@@ -164,7 +164,7 @@ public partial class DragController : Node3D
         var step = snapped?.Socket?.Socket.RotationStepDegrees ?? 0f;
         if (payload == null || step <= 0f)
             return;
-        payload.RotationDegrees = (payload.RotationDegrees + step) % 360f;
+        payload.RotationDegrees = Fitting.SnapRotation(Fitting.SnapRotation(payload.RotationDegrees, step) + step, step);
         UpdateGhost();
     }
 
@@ -239,7 +239,8 @@ public partial class DragController : Node3D
         if (snapped?.Socket is { } s)
         {
             var def = screen.Lib.Get(payload.PartId);
-            ghost.Transform = NumericsBridge.ToGodot(Layout.ChildWorld(s.Socket, def, payload.RotationDegrees, s.World));
+            var spin = Fitting.SnapRotation(payload.RotationDegrees, s.Socket.RotationStepDegrees); // what Attach will store
+            ghost.Transform = NumericsBridge.ToGodot(Layout.ChildWorld(s.Socket, def, spin, s.World));
         }
         else if (snapped != null)
         {
