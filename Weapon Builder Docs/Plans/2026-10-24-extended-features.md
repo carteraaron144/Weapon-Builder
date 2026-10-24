@@ -1,11 +1,11 @@
 # Extended Features Roadmap
 
-This roadmap covers the four features after the [[2026-10-24-mvp-builder|MVP builder]]:
+This roadmap covers the features after the [[2026-10-24-mvp-builder|MVP builder]]:
 
-- materials;
-- edges;
 - randomize;
-- the gallery browser, together with part icons.
+- the Spore-style layout: an icon palette and a materials panel;
+- the gallery browser;
+- edges.
 
 Each feature gets its own detailed implementation plan, with exact signatures and tests, when its turn comes. This page fixes the scope, the decisions, the order, and what "done" means for each.
 
@@ -24,8 +24,8 @@ Each feature gets its own detailed implementation plan, with exact signatures an
 |---|---|---|---|
 | 0 | MVP hardening | S | Fixes the deferred minor issues before new code builds on them. |
 | 1 | Randomize | S | Mostly core and easy to test; gives a quick fun win. It also makes many weapons for testing the later features. |
-| 2 | Materials picker | M | Adds part selection, which edges reuse. Randomize then picks materials too. |
-| 3 | Gallery browser + part icons | M | Both are offscreen rendering and UI. Neither changes weapon rules. |
+| 2 | Builder layout: icon palette + materials panel | M | The Spore-style layout everything else sits in. Randomize then picks materials too. |
+| 3 | Gallery browser | S | UI only; it reuses the icon rendering from step 2. |
 | 4 | Edges | L | The largest and riskiest piece (sweeping geometry along a curve). It goes last so the rest doesn't wait on it. |
 
 ---
@@ -80,42 +80,85 @@ A **Randomize** button replaces the current weapon with a random one.
 
 ---
 
-## 2. Materials picker
+## 2. Builder layout: icon palette + materials panel
 
-Click a part, then click a swatch to change its material.
+The builder takes Spore's layout: part icons on the left, the weapon in the middle, materials on the right. This step merges the old "materials picker" and "part icons" features (agreed 2026-10-24).
 
-**Decisions**
+**Detailed plan:** [[2026-10-24-builder-layout]].
 
-- **Selection:** clicking a placed part (without dragging) selects it. The part gets a tinted outline, using the `OutlineShell` tint. Clicking empty space clears the selection. Selection is separate from hover.
-- **Swatch bar:** it appears along the bottom while a part is selected. It shows one swatch per material the part allows.
-  - Shift-click applies a material to every part in the same category.
-- **Materials become data:** they move to `data/materials.json`. Each entry has:
-  - `id`, `name`;
-  - `color`, `metallic`, `roughness`;
-  - an optional `texture` (a tiling image in `assets/textures/`) and `textureScale`;
-  - `tags`, such as `metal`, `wood` or `wrap`.
-- A part lists the material tags it allows (a new optional `materials` field, defaulting to all), so a leather blade isn't offered. Matching uses the same shared-tag rule as sockets.
-- **The core** gets:
-  - a `MaterialLibrary`, with the same load and validate pattern as `PartLibrary`;
-  - `WeaponEditor.SetMaterial(part, id)`, which rejects materials the part doesn't allow.
-- **Textures:** object-space triplanar, via `Uv1Triplanar` and `Uv1Scale` from `textureScale`. Textures are small (256–512 px) tiling images. Prefer CC0 sources or generated noise. Downloading any texture needs the user's OK first.
-- The ghost material (drag preview) keeps working for textured materials.
-- **Loading:** a material that is unknown or no longer allowed falls back to the part's default, with a warning.
+### Layout
 
-**Tests (core):** the material file loads and validates; tag matching; `SetMaterial` accepts allowed and rejects disallowed materials; JSON reading falls back for unknown materials.
+- **Left:** the part palette, narrower than Spore's. It keeps the four category tabs, but each tab is a grid of icon buttons, 3 across at about 72 px. The part name is the tooltip.
+- **Centre:** the 3D view, unchanged.
+- **Right:** a slim materials column. Each material is a round swatch with its name under it.
+- **Top:** the toolbar (New, Randomize, Build) stays where it is.
 
-**Smoke checks:**
+### Part icons
 
-- Clicking a part selects it, and clicking a swatch changes its material.
-- The material survives Build and Load.
-- Shift-click recolours the whole category.
-- Dragging still works on a selected part.
+These are ported from The Mountain's `tools/render_icons.gd`.
+
+- **Angle:** an orthographic camera, with the part turned 30° about Y and seen from 20° above. A key light and a fill light, on a transparent background. Rendered at 4× size and scaled down for clean edges.
+- **Framing:** each part is framed by its bounds. Long, thin parts (length several times the width: blades, hafts) are rolled 45° so they run corner to corner.
+- **Rendering:** icons render at startup in an offscreen `SubViewport`, with each part in its default material.
+- **Cache:** icons are cached in `user://icons/<part id>-<hash>.png`, where the hash is of the part's JSON, so editing a part re-renders its icon.
+- **Until ready:** buttons show the part name until their icon is ready.
+
+### Materials
+
+- **Materials are data:** they live in `data/materials.json`. Each entry has `id`, `name`, `color`, `metallic`, `roughness`, `tags` (`metal` or `wood`), and an optional `hidden`.
+- **The panel lists seven:** bronze, iron, steel, gold, mithril, obsidian, wood.
+  - Bronze is warm orange-brown; iron dark grey and fairly rough; steel bright grey; gold yellow and glossy.
+  - Mithril is pale blue-silver with a slight sheen; obsidian near-black, glassy and non-metallic; wood brown and matte.
+  - Flat colours for now. Generated noise textures may come later. Nothing is downloaded.
+- **Leather is "basic":** it is a hidden material, used only as the grip's default. It is not in the panel. Painting the grip with a panel material is allowed.
+- **Brass becomes bronze** in the part data. An old save naming `brass`, or any unknown material, falls back to the part's default with a warning.
+- **Restriction is supported but unused:**
+  - A part may list the material tags it allows (an optional `materials` field). Missing means any material.
+  - No part uses it yet, so every part takes every material. Restriction is not tested in this step.
+
+### Applying a material
+
+- **Drag a swatch** out of the panel. The part under the cursor previews that material.
+  - Releasing over a part paints it.
+  - Releasing over empty space, or pressing Escape, cancels.
+- **Shift while releasing** paints every part in the same category.
+- There is no separate selection step. Swatch drags reuse the part picking that part drags already do.
+
+### Core
+
+- `MaterialLibrary`, with the same load and validate pattern as `PartLibrary`: unique ids, colour parsing, known fields.
+- `PartDef.Materials` (optional tag list) and `Fitting.AllowsMaterial(PartDef, MaterialDef)`, which uses the shared-tag rule with "missing means all".
+- `WeaponEditor.SetMaterial(node, id)` returns false for an unknown or disallowed material and leaves the part unchanged.
+- `WeaponEditor.SetMaterialForCategory(category, id)` paints every part in that category.
+- JSON reading falls back to the part's default for unknown materials, with a warning.
+- **Randomize** picks a material per part: the default with chance 0.5, otherwise a random allowed material, in a fixed order so seeds stay reproducible.
+
+### Tests (core)
+
+- The material file loads; bad entries (duplicate id, bad colour) are reported.
+- `SetMaterial` changes a part's material; an unknown id is refused.
+- Category painting changes only that category.
+- An unknown material in a save falls back to the part's default, with a warning.
+- Randomize is still reproducible by seed and only uses known materials.
+- Every part's `defaultMaterial` exists in `data/materials.json`.
+
+### Smoke checks
+
+- Every palette button gets a non-empty icon.
+- The panel shows the seven materials.
+- Dragging a swatch onto a blade paints it.
+- Dropping on empty space changes nothing.
+- Shift-drop paints the whole category.
+- Materials survive Build and Load.
+- Part drags still work after a swatch drag.
+
+### Screenshots
+
+The full layout, plus a weapon in each material.
 
 ---
 
-## 3. Gallery browser + part icons
-
-### Gallery browser
+## 3. Gallery browser
 
 - A **Gallery** button opens a full-screen overlay showing a grid of saved weapons (thumbnail and name), newest first.
 - Clicking a card loads that weapon into the builder. Unsaved changes get a "Discard current weapon?" prompt first.
@@ -124,27 +167,19 @@ Click a part, then click a swatch to change its material.
 - An unreadable entry shows with a warning badge instead of being hidden.
 - Building a weapon that was loaded from the gallery still saves a new entry. Overwriting is out of scope.
 
-### Part icons
-
-- Each palette button shows a rendered icon of its part, with the name as a tooltip, instead of just text.
-- Icons are rendered at startup in an offscreen `SubViewport`, using the same studio lighting, default material and outline. Each part is framed by its bounds.
-- They are cached in `user://icons/<part id>-<hash>.png`, where the hash is of the part's JSON, so editing a part re-renders its icon.
-- The palette shows text while the icons render, then swaps the icons in.
-
-**Tests (core):** `GalleryIndex` pairing, sorting, and orphan handling; the icon cache key changes when the part JSON changes.
+**Tests (core):** `GalleryIndex` pairing, sorting, and orphan handling.
 
 **Smoke checks:**
 
 - The gallery lists the weapons saved during the smoke run.
 - Loading a card restores the weapon.
 - Deleting removes the card and the files.
-- Every palette button has a non-empty icon.
 
 ---
 
 ## 4. Edges
 
-A selected blade gets an edge type picker: **sharp, jagged, battered, sawed, bleeders**. The edge is modelled along the blade's outline.
+The right-hand panel gets an **Edges** tab next to Materials, with five edge types: **sharp, jagged, battered, sawed, bleeders**. You drag an edge onto a blade, the same way materials are applied. The edge is modelled along the blade's outline.
 
 **Decisions**
 
@@ -176,6 +211,6 @@ A selected blade gets an edge type picker: **sharp, jagged, battered, sawed, ble
 Each is decided in its feature's plan; the default in brackets applies if no one decides otherwise.
 
 1. Should Randomize ever change the handle, or keep the current one? [random handle]
-2. Should textures be downloaded (CC0) or generated as noise? [generated noise first; ask before any download]
+2. Should textures be downloaded (CC0) or generated as noise? [flat colours in step 2; generated noise later; ask before any download]
 3. Should the gallery have rename and overwrite? [no, out of scope]
 4. Can edges go on non-blade parts, such as spiked guards? [blades and axe heads only for now]

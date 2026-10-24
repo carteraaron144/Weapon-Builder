@@ -27,10 +27,13 @@ Of course this would mean more components added more weight, heavier weapons are
 - **Scaling:** a part's scale is `min(socket.length / part.length, socket.width / part.width)`, kept between 0.25 and 4. Child sockets inherit it.
 - **Edges:** each blade stores its edge as a curve; an edge type is a cross-section (or a repeating piece) swept along it.
 - **Materials:** object-space triplanar, so no UVs are needed and textures move with the weapon.
+- **Layout (Spore-style, 2026-10-24):** part icons on the left (a narrow grid, three-quarter view as in The Mountain's icons), the weapon in the middle, a materials panel on the right. You drag a material onto a part to paint it, and Shift paints the whole category. There is no separate part selection.
+- **Material set:** bronze, iron, steel, gold, mithril, obsidian, wood. Leather is a hidden "basic" material, used only as the grip's default. Any part takes any material for now. Parts can list allowed material tags later, but none do yet.
 - **Snapping:** while dragging, compatible sockets light up, the part snaps to the nearest one within a radius on screen, and a see-through preview shows where it'll go.
 - **Randomize:** a random walk down the tree: fill required sockets, fill optional ones by chance, cap the depth, and pick materials.
 
 ## Plans
 - [[2026-10-24-mvp-builder|MVP builder]]: snap, swap, remove, orbit, save to the gallery. **Done** (branch feat/mvp-builder).
 - [[2026-10-24-hardening-randomize|Hardening + Randomize]]: **Done** (branch feat/hardening-randomize).
-- [[2026-10-24-extended-features|Extended features roadmap]]: hardening, randomize, materials, gallery browser + part icons, edges. Each gets its own detailed plan when it starts.
+- [[2026-10-24-builder-layout|Builder layout: icon palette + materials panel]]: planned.
+- [[2026-10-24-extended-features|Extended features roadmap]]: hardening, randomize, builder layout (icon palette + materials panel), gallery browser, edges. Each gets its own detailed plan when it starts.
