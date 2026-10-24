@@ -74,4 +74,23 @@ public class PartLibraryTests
         Assert.Equal(Vector3.One, prim.Scale);
         Assert.Equal(6, prim.Sides);
     }
+
+    static PartLibrary Parts(params (string Id, string Tag)[] parts) =>
+        new(parts.Select(p => TestParts.Part(p.Id, [p.Tag])));
+
+    [Fact]
+    public void PickHandle_PrefersTheNamedHandle() =>
+        Assert.Equal("grip", Parts(("a_haft", "handle"), ("grip", "handle")).PickHandle("grip"));
+
+    [Fact]
+    public void PickHandle_FallsBackToFirstHandleById() =>
+        Assert.Equal("b_haft", Parts(("z_haft", "handle"), ("b_haft", "handle"), ("a_blade", "blade")).PickHandle("grip"));
+
+    [Fact]
+    public void PickHandle_PreferredThatIsntAHandleIsSkipped() =>
+        Assert.Equal("haft", Parts(("blade", "blade"), ("haft", "handle")).PickHandle("blade"));
+
+    [Fact]
+    public void PickHandle_NoHandlesGivesNull() =>
+        Assert.Null(Parts(("blade", "blade")).PickHandle("grip"));
 }

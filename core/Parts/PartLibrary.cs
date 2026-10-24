@@ -23,4 +23,14 @@ public sealed partial class PartLibrary
     public bool TryGet(string id, out PartDef def) => byId.TryGetValue(id, out def!);
     public IReadOnlyList<PartDef> ByCategory(string category) =>
         byId.Values.Where(p => p.Category == category).ToList();
+
+    /// The handle a new weapon starts from: preferred if it's a known handle, otherwise the handle whose id sorts
+    /// first, or null if there are no handles.
+    public string? PickHandle(string preferred)
+    {
+        if (TryGet(preferred, out var def) && def.Tags.Contains(WeaponEditor.HandleTag))
+            return preferred;
+        return byId.Values.Where(p => p.Tags.Contains(WeaponEditor.HandleTag))
+            .Select(p => p.Id).Order(StringComparer.Ordinal).FirstOrDefault();
+    }
 }

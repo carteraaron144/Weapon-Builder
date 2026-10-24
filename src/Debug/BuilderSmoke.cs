@@ -38,6 +38,7 @@ public partial class BuilderSmoke : Node
 
     async Task Run()
     {
+        Check(b.RootHandle == "grip", "the shipped grip is the default handle");
         var root = b.Weapon.Root;
         await Palette("straight_blade", Socket(root, "top"));
         Check(At(root, "top") == "straight_blade", "blade attaches to the grip's top");

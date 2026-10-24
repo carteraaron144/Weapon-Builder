@@ -16,6 +16,8 @@ public partial class BuilderScreen : Node3D
     public static readonly Aabb NewWeaponFrame = new(new Vector3(-0.3f, -0.2f, -0.3f), new Vector3(0.6f, 1.4f, 0.6f));
 
     public PartLibrary Lib { get; private set; } = null!;
+    /// The handle new weapons start from: DefaultHandle, or another handle if that one is missing.
+    public string RootHandle { get; private set; } = DefaultHandle;
     public WeaponEditor Editor { get; private set; } = null!;
     public Weapon Weapon { get; set; } = null!;
     public WeaponView View { get; private set; } = null!;
@@ -45,6 +47,17 @@ public partial class BuilderScreen : Node3D
         AddChild(Drag = new DragController());
         Drag.Setup(this);
         BuildUi();
+
+        if (Lib.PickHandle(DefaultHandle) is not { } handle)
+        {
+            GD.PushError("No handle parts in data/parts");
+            ShowStatus("No handle parts in data/parts", sticky: true);
+            Drag.ProcessMode = ProcessModeEnum.Disabled;
+            return;
+        }
+        if (handle != DefaultHandle)
+            GD.PushWarning($"Default handle '{DefaultHandle}' is missing; using '{handle}'");
+        RootHandle = handle;
 
         NewWeapon();
         var args = OS.GetCmdlineUserArgs();
@@ -106,7 +119,7 @@ public partial class BuilderScreen : Node3D
     public void NewWeapon()
     {
         Drag?.Cancel();
-        Weapon = new Weapon(WeaponJson.DefaultName, new WeaponPart(DefaultHandle, Lib.Get(DefaultHandle).DefaultMaterial));
+        Weapon = new Weapon(WeaponJson.DefaultName, new WeaponPart(RootHandle, Lib.Get(RootHandle).DefaultMaterial));
         Refresh();
         Camera.Frame(NewWeaponFrame);
     }
@@ -124,7 +137,7 @@ public partial class BuilderScreen : Node3D
             return;
         }
         Drag.Cancel();
-        Weapon = WeaponJson.Read(json, Lib, DefaultHandle, out var warnings);
+        Weapon = WeaponJson.Read(json, Lib, RootHandle, out var warnings);
         foreach (var w in warnings)
             GD.PushWarning($"{path}: {w}");
         Refresh();
@@ -179,10 +192,12 @@ public partial class BuilderScreen : Node3D
         return image;
     }
 
-    /// Shows a line at the top of the screen for a few seconds.
-    public void ShowStatus(string text)
+    /// Shows a line at the top of the screen for a few seconds (or until replaced, if sticky).
+    public void ShowStatus(string text, bool sticky = false)
     {
         Status.Text = text;
+        if (sticky)
+            return;
         GetTree().CreateTimer(3).Timeout += () =>
         {
             if (Status.Text == text)
