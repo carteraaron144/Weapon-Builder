@@ -23,7 +23,16 @@ GODOT=/Applications/Godot_mono.app/Contents/MacOS/Godot      # the .NET build; /
 tools/test.sh [--filter Name]                                # core unit tests (dotnet test)
 dotnet build WeaponBuilder.csproj                             # build the Godot C# project (shows compile errors; Godot's --build-solutions hides them)
 $GODOT --path . res://scenes/builder_smoke.tscn [-- --out <dir>]  # drives the builder with simulated input; exit code = failed checks (opens a window)
+$GODOT --path . res://scenes/builder.tscn -- --seed <n>      # the builder on a random weapon (also --demo, --load <path>)
+$GODOT --headless --path . --export-release "macOS" <dir>/WeaponBuilder.app   # needs the export templates and the preset below
 ```
+
+**Export preset** (`export_presets.cfg` is git-ignored, so recreate it per machine). The macOS preset needs:
+- `include_filter="data/*"`: part JSON isn't an imported resource and is left out otherwise.
+- `codesign/codesign=3` (Xcode codesign) with `codesign/identity="-"` (ad-hoc). Godot's built-in ad-hoc signing makes a bundle macOS kills on launch.
+- `codesign/entitlements/allow_jit_code_execution`, `allow_unsigned_executable_memory` and `disable_library_validation` set to true, for .NET.
+- `project.godot` already enables ETC2/ASTC textures, which arm64 exports require.
+- Exported builds can't run other scenes or `--script` from the command line, so test with the editor binary.
 
 ## Rules
 
