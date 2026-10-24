@@ -12,5 +12,9 @@ static class TestParts
 
     public static PartDef Part(string id, string[] tags, float length = 1f, float width = 0.1f,
         params SocketDef[] sockets) =>
-        new(id, id, "Test", tags, length, width, "steel", sockets, Array.Empty<Primitive>());
+        new(id, id, "Test", tags, length, width, "steel", sockets, Array.Empty<Primitive>(), null);
+
+    /// A plain material for tests.
+    public static MaterialDef Mat(string id, params string[] tags) =>
+        new(id, id, new Vector3(0.5f), 0.5f, 0.5f, tags.Length > 0 ? tags : ["metal"], false);
 }

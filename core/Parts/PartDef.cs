@@ -13,6 +13,8 @@ public sealed record Primitive(string Shape, Vector3 Size, Vector3 Position, Vec
 public sealed record SocketDef(string Name, Vector3 Position, Vector3 RotationDegrees,
     IReadOnlyList<string> Accepts, float Length, float Width, bool Required, float RotationStepDegrees);
 
-/// A kind of part, loaded from data/parts/*.json.
+/// A kind of part, loaded from data/parts/*.json. Materials lists the material tags it can be painted with;
+/// null means any material.
 public sealed record PartDef(string Id, string Name, string Category, IReadOnlyList<string> Tags,
-    float Length, float Width, string DefaultMaterial, IReadOnlyList<SocketDef> Sockets, IReadOnlyList<Primitive> Mesh);
+    float Length, float Width, string DefaultMaterial, IReadOnlyList<SocketDef> Sockets, IReadOnlyList<Primitive> Mesh,
+    IReadOnlyList<string>? Materials);

@@ -165,4 +165,50 @@ public class WeaponEditorTests
         Assert.Same(head, root.Children["top"].Children["tip"]);
         Assert.Equal(120f, head.RotationDegrees);
     }
+
+    [Fact]
+    public void SetMaterial_PaintsThePart()
+    {
+        editor.Attach(Root, "top", "blade");
+        Assert.True(editor.SetMaterial(Root.Children["top"], Mat("gold")));
+        Assert.Equal("gold", Root.Children["top"].Material);
+        Assert.Equal("steel", Root.Material);
+    }
+
+    static readonly PartLibrary CategoryLib = new([
+        Part("h", ["handle"], 1f, 0.1f, Socket("a1", ["a"]), Socket("a2", ["a"]), Socket("b", ["b"])),
+        Part("pa", ["a"]) with { Category = "A" },
+        Part("pb", ["b"]) with { Category = "B" },
+    ]);
+
+    static Weapon CategoryWeapon(WeaponEditor e)
+    {
+        var w = new Weapon("T", new WeaponPart("h", "steel"));
+        e.Attach(w.Root, "a1", "pa");
+        e.Attach(w.Root, "a2", "pa");
+        e.Attach(w.Root, "b", "pb");
+        return w;
+    }
+
+    [Fact]
+    public void SetMaterialForCategory_PaintsOnlyThatCategory()
+    {
+        var e = new WeaponEditor(CategoryLib);
+        var w = CategoryWeapon(e);
+        Assert.Equal(2, e.SetMaterialForCategory(w, "A", Mat("gold")));
+        Assert.Equal("gold", w.Root.Children["a1"].Material);
+        Assert.Equal("gold", w.Root.Children["a2"].Material);
+        Assert.Equal("steel", w.Root.Children["b"].Material);
+        Assert.Equal("steel", w.Root.Material);
+    }
+
+    [Fact]
+    public void SetMaterialForCategory_IncludesTheRoot()
+    {
+        var e = new WeaponEditor(CategoryLib);
+        var w = CategoryWeapon(e);
+        Assert.Equal(1, e.SetMaterialForCategory(w, "Test", Mat("iron")));
+        Assert.Equal("iron", w.Root.Material);
+        Assert.Equal("steel", w.Root.Children["a1"].Material);
+    }
 }

@@ -59,6 +59,32 @@ public sealed class WeaponEditor(PartLibrary lib)
         return parent == null ? null : Detach(weapon, parent, socket);
     }
 
+    /// Paints a part. Refused (false, nothing changes) for an unknown part or a material it doesn't allow.
+    public bool SetMaterial(WeaponPart part, MaterialDef material)
+    {
+        if (!lib.TryGet(part.PartId, out var def) || !Fitting.AllowsMaterial(def, material))
+            return false;
+        part.Material = material.Id;
+        return true;
+    }
+
+    /// Paints every part of the weapon in a category (the root included) that allows the material.
+    /// Returns how many were painted.
+    public int SetMaterialForCategory(Weapon weapon, string category, MaterialDef material)
+    {
+        var painted = 0;
+        var stack = new Stack<WeaponPart>([weapon.Root]);
+        while (stack.Count > 0)
+        {
+            var part = stack.Pop();
+            if (lib.TryGet(part.PartId, out var def) && def.Category == category && SetMaterial(part, material))
+                painted++;
+            foreach (var child in part.Children.Values)
+                stack.Push(child);
+        }
+        return painted;
+    }
+
     /// The part whose socket holds child, or null if child is the root or not in the weapon.
     public WeaponPart? FindParent(Weapon weapon, WeaponPart child, out string socket)
     {

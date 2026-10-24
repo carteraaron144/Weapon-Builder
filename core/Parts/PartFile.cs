@@ -14,6 +14,7 @@ sealed class PartFile
     public string? DefaultMaterial { get; set; }
     public List<SocketFile>? Sockets { get; set; }
     public List<PrimitiveFile>? Mesh { get; set; }
+    public List<string>? Materials { get; set; }
 
     public sealed class SocketFile
     {
@@ -53,7 +54,7 @@ sealed class PartFile
         var mesh = (Mesh ?? []).Select(p => new Primitive(p.Shape ?? "box", Vec(p.Size, Vector3.One),
             Vec(p.Position, Vector3.Zero), Vec(p.Rotation, Vector3.Zero), Vec(p.Scale, Vector3.One), p.Sides)).ToList();
         return new PartDef(Id, Name ?? Id, Category ?? "Other", Tags ?? [], Length, Width,
-            DefaultMaterial ?? "steel", sockets, mesh);
+            DefaultMaterial ?? "steel", sockets, mesh, Materials);
     }
 
     static Vector3 Vec(float[]? v, Vector3 fallback) => v switch

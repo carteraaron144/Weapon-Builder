@@ -7,6 +7,10 @@ public static class Fitting
     public static bool Accepts(SocketDef socket, PartDef part) =>
         socket.Accepts.Any(tag => part.Tags.Contains(tag));
 
+    /// A part takes a material when it lists no material tags (any material), or shares a tag with it.
+    public static bool AllowsMaterial(PartDef part, MaterialDef material) =>
+        part.Materials == null || part.Materials.Any(tag => material.Tags.Contains(tag));
+
     public const float MinScale = 0.25f;
     public const float MaxScale = 4f;
 
