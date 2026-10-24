@@ -25,6 +25,9 @@ public partial class BuilderScreen : Node3D
     public WeaponView View { get; private set; } = null!;
     public OrbitCamera Camera { get; private set; } = null!;
     public PartPalette Palette { get; private set; } = null!;
+    public PartIcons Icons { get; private set; } = null!;
+    /// Finishes when every palette button has its icon.
+    public Task IconsReady { get; private set; } = Task.CompletedTask;
     public DragController Drag { get; private set; } = null!;
     public CanvasLayer UiLayer { get; private set; } = null!;
     public Button BuildButton { get; private set; } = null!;
@@ -49,7 +52,9 @@ public partial class BuilderScreen : Node3D
         AddChild(Camera = new OrbitCamera { Fov = 50 });
         AddChild(Drag = new DragController());
         Drag.Setup(this);
+        AddChild(Icons = new PartIcons { Name = "Icons" });
         BuildUi();
+        IconsReady = FillIcons();
 
         if (Lib.PickHandle(DefaultHandle) is not { } handle)
         {
@@ -91,7 +96,7 @@ public partial class BuilderScreen : Node3D
         ui.SetAnchorsPreset(Control.LayoutPreset.FullRect);
         UiLayer.AddChild(ui);
 
-        Palette = new PartPalette { Name = "Palette", CustomMinimumSize = new Vector2(240, 0) };
+        Palette = new PartPalette { Name = "Palette" };
         Palette.SetAnchorsPreset(Control.LayoutPreset.LeftWide);
         Palette.OffsetLeft = 12;
         Palette.OffsetTop = 12;
@@ -123,6 +128,14 @@ public partial class BuilderScreen : Node3D
         NameDialog.RegisterTextEnter(NameEdit);
         NameDialog.Confirmed += async () => await Build(NameEdit.Text);
         AddChild(NameDialog);
+    }
+
+    /// Gives every palette button its icon, tab by tab.
+    async Task FillIcons()
+    {
+        foreach (var tab in PartPalette.Tabs)
+            foreach (var def in Lib.ByCategory(tab))
+                Palette.SetIcon(def.Id, await Icons.Get(def));
     }
 
     /// Starts over with a bare handle.

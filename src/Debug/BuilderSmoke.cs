@@ -38,6 +38,7 @@ public partial class BuilderSmoke : Node
 
     async Task Run()
     {
+        await Icons();
         Check(b.RootHandle == "grip", "the shipped grip is the default handle");
         Check(b.Materials.Visible.Count == 7, $"the panel has seven materials ({b.Materials.Visible.Count})");
         Check(WeaponMaterials.Get("mithril") != WeaponMaterials.Get("steel"), "mithril is its own material, not the steel fallback");
@@ -254,6 +255,41 @@ public partial class BuilderSmoke : Node
             return;
         foreach (var f in DirAccess.GetFilesAt(dir))
             DirAccess.RemoveAbsolute($"{dir}/{f}");
+    }
+
+    async Task Icons()
+    {
+        await b.IconsReady;
+        var buttons = b.Palette.Buttons.ToList();
+        Check(buttons.Count == b.Lib.All.Count(), $"the palette has a button per part ({buttons.Count})");
+        Check(buttons.All(x => x.Icon != null && x.Icon.GetWidth() > 0 && x.Text == ""),
+            "every palette button shows its icon instead of its name");
+
+        // A corrupt cached icon is rendered again, not shown blank.
+        var def = b.Lib.Get("straight_blade");
+        var path = b.Icons.CachePath(def);
+        DirAccess.MakeDirRecursiveAbsolute(PartIcons.CacheDir);
+        using (var f = FileAccess.Open(path, FileAccess.ModeFlags.Write))
+            f.StoreString("junk");
+        b.Icons.Forget();
+        var icon = await b.Icons.Get(def);
+        var onDisk = new Image();
+        Check(icon.GetWidth() == PartIcons.Size && onDisk.Load(path) == Error.Ok && !onDisk.IsEmpty(),
+            "a corrupt cached icon is rendered and saved again");
+        await Frames(2);
+        Check(DirAccess.GetFilesAt(PartIcons.CacheDir).Count(f => f.StartsWith("straight_blade-")) == 1,
+            "...replacing the old file, so the cache keeps one icon per part");
+        Check(Enumerable.Range(0, b.Palette.GetTabCount()).All(t => b.Palette.GetTabIcon(t) != null && b.Palette.GetTabTitle(t) == ""),
+            "every palette tab shows an icon instead of its name");
+        Check(b.Palette.Size.X <= PartPalette.Columns * (PartPalette.ButtonSize + 8) + 16, $"the palette stays narrow ({b.Palette.Size.X} px)");
+        if (outDir != null)
+        {
+            await Shot("layout.png");
+            b.Palette.CurrentTab = Array.IndexOf(PartPalette.Tabs, "Blades & Heads");
+            await Frames(2);
+            await Shot("palette-blades.png");
+            b.Palette.CurrentTab = 0;
+        }
     }
 
     // --- steps ---
