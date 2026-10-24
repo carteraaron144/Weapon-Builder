@@ -22,11 +22,12 @@ The design notes and plans are an Obsidian vault in `Weapon Builder Docs/`:
 GODOT=/Applications/Godot_mono.app/Contents/MacOS/Godot      # the .NET build; /Applications/Godot.app can't run C#
 tools/test.sh [--filter Name]                                # core unit tests (dotnet test)
 dotnet build WeaponBuilder.csproj                             # build the Godot C# project (shows compile errors; Godot's --build-solutions hides them)
+$GODOT --path . res://scenes/builder_smoke.tscn [-- --out <dir>]  # drives the builder with simulated input; exit code = failed checks (opens a window)
 ```
 
 ## Rules
 
-- **Unit tests:** core logic is written test-first; run `tools/test.sh` before calling work done. Godot-side code is checked by running the scene and with screenshots (write them to a scratch directory, not the repo).
+- **Unit tests:** core logic is written test-first; run `tools/test.sh` before calling work done. Godot-side behaviour is checked by the builder smoke scene (`src/Debug/BuilderSmoke.cs`; add a check when you change builder behaviour) and with screenshots (`tools/shot.gd`) (write them to a scratch directory, not the repo).
 - **Conventions:** a part's origin is its attach point and it grows along +Y; a socket's +Y points away from its owner. Data rotations are degrees in Godot's YXZ order (`Matrix4x4.CreateFromYawPitchRoll(y, x, z)`). System.Numerics matrices are row-vector: in a product, the leftmost applies first.
 - **Art:** low-poly and flat-shaded (`MeshKit.FlatMesh`); object-space triplanar materials.
 - **Reuse:** code from The Mountain (`~/Projects/the-mountain`, GDScript) may be ported when it saves work.

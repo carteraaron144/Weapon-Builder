@@ -15,6 +15,9 @@ public partial class WeaponView : Node3D
     readonly Dictionary<WeaponPart, MeshInstance3D> outlineOf = new();
     WeaponPart? hovered;
 
+    /// A ghost is see-through and can't be picked (drag previews).
+    public bool IsGhost { get; init; }
+
     public LayoutResult? Current { get; private set; }
     public Aabb Bounds { get; private set; }
 
@@ -36,11 +39,16 @@ public partial class WeaponView : Node3D
         foreach (var placed in Current.Parts)
         {
             var mesh = PartMeshFactory.Get(placed.Def);
-            var node = MakePartNode(mesh, WeaponMaterials.Get(placed.Part.Material));
+            var node = MakePartNode(mesh, IsGhost ? WeaponMaterials.Ghost(placed.Part.Material) : WeaponMaterials.Get(placed.Part.Material));
             node.Transform = NumericsBridge.ToGodot(placed.World);
             AddChild(node);
 
             var aabb = mesh.GetAabb();
+            var worldAabb = node.Transform * aabb;
+            bounds = first ? worldAabb : bounds.Merge(worldAabb);
+            first = false;
+            if (IsGhost)
+                continue;
             var body = new StaticBody3D { CollisionLayer = PickLayer, CollisionMask = 0 };
             body.AddChild(new CollisionShape3D
             {
@@ -50,10 +58,6 @@ public partial class WeaponView : Node3D
             node.AddChild(body);
             partOfBody[body.GetInstanceId()] = placed.Part;
             outlineOf[placed.Part] = node.GetNode<MeshInstance3D>("Outline");
-
-            var worldAabb = node.Transform * aabb;
-            bounds = first ? worldAabb : bounds.Merge(worldAabb);
-            first = false;
         }
         Bounds = bounds;
     }

@@ -10,6 +10,20 @@ public static class WeaponMaterials
 
     static readonly Dictionary<string, StandardMaterial3D> Cache = new();
 
+    static readonly Dictionary<string, StandardMaterial3D> GhostCache = new();
+
+    /// A see-through copy of a material, for drag previews.
+    public static Material Ghost(string id)
+    {
+        if (GhostCache.TryGetValue(id, out var g))
+            return g;
+        g = (StandardMaterial3D)Get(id).Duplicate();
+        g.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+        g.AlbedoColor = g.AlbedoColor with { A = 0.5f };
+        GhostCache[id] = g;
+        return g;
+    }
+
     /// The material with this id; unknown ids get steel.
     public static Material Get(string id)
     {
