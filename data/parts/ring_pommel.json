@@ -1,0 +1,6 @@
+{ "id": "ring_pommel", "name": "Ring Pommel", "category": "Pommels", "tags": ["pommel"],
+  "length": 0.06, "width": 0.045, "defaultMaterial": "iron", "sockets": [],
+  "mesh": [
+    { "shape": "prism", "size": [0.01, 0.016, 0.01], "position": [0, 0.008, 0], "sides": 6 },
+    { "shape": "ring", "size": [0.012, 0.022, 0], "position": [0, 0.038, 0], "rotation": [90, 0, 0], "sides": 8 }
+  ] }

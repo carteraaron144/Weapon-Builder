@@ -1,0 +1,7 @@
+{ "id": "curved_guard", "name": "Curved Guard", "category": "Guards", "tags": ["crossguard"],
+  "length": 0.04, "width": 0.2, "defaultMaterial": "iron", "sockets": [],
+  "mesh": [
+    { "shape": "box", "size": [0.04, 0.03, 0.035], "position": [0, 0.015, 0] },
+    { "shape": "box", "size": [0.09, 0.022, 0.028], "position": [-0.06, 0.022, 0], "rotation": [0, 0, -18] },
+    { "shape": "box", "size": [0.09, 0.022, 0.028], "position": [0.06, 0.022, 0], "rotation": [0, 0, 18] }
+  ] }

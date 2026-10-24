@@ -1,0 +1,7 @@
+{ "id": "long_haft", "name": "Long Haft", "category": "Handles", "tags": ["handle"],
+  "length": 1.4, "width": 0.04, "defaultMaterial": "wood",
+  "sockets": [
+    { "name": "top", "position": [0, 1.4, 0], "accepts": ["blade", "head"], "length": 0.5, "width": 0.2, "rotationStep": 90 },
+    { "name": "bottom", "position": [0, 0, 0], "rotation": [0, 0, 180], "accepts": ["pommel"], "length": 0.06, "width": 0.05, "rotationStep": 90 }
+  ],
+  "mesh": [ { "shape": "prism", "size": [0.018, 1.4, 0.02], "position": [0, 0.7, 0], "sides": 6 } ] }

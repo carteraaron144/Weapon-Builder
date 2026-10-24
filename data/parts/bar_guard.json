@@ -1,0 +1,3 @@
+{ "id": "bar_guard", "name": "Bar Guard", "category": "Guards", "tags": ["crossguard"],
+  "length": 0.03, "width": 0.2, "defaultMaterial": "iron", "sockets": [],
+  "mesh": [ { "shape": "box", "size": [0.2, 0.03, 0.035], "position": [0, 0.015, 0] } ] }

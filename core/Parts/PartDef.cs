@@ -6,7 +6,7 @@ namespace WeaponBuilder.Core;
 // A socket's +Y points away from the part that owns it. Rotations are degrees, Godot YXZ order.
 
 /// One mesh primitive of a part. Size means: box = extents; prism = [top radius, height, bottom radius];
-/// sphere = [radius, rings, unused]. Sides is used by prism and sphere.
+/// sphere = [radius, rings, unused]; ring = [inner radius, outer radius, unused]. Sides is used by prism, sphere and ring.
 public sealed record Primitive(string Shape, Vector3 Size, Vector3 Position, Vector3 RotationDegrees, Vector3 Scale, int Sides);
 
 /// A place on a part where another part attaches.

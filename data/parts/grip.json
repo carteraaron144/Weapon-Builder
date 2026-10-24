@@ -1,0 +1,8 @@
+{ "id": "grip", "name": "Leather Grip", "category": "Handles", "tags": ["handle"],
+  "length": 0.25, "width": 0.04, "defaultMaterial": "leather",
+  "sockets": [
+    { "name": "top", "position": [0, 0.25, 0], "accepts": ["blade", "head"], "length": 0.9, "width": 0.12, "rotationStep": 90 },
+    { "name": "guard", "position": [0, 0.25, 0], "accepts": ["crossguard"], "length": 0.03, "width": 0.2, "rotationStep": 90 },
+    { "name": "bottom", "position": [0, 0, 0], "rotation": [0, 0, 180], "accepts": ["pommel"], "length": 0.05, "width": 0.05, "rotationStep": 90 }
+  ],
+  "mesh": [ { "shape": "prism", "size": [0.018, 0.25, 0.018], "position": [0, 0.125, 0], "sides": 6 } ] }

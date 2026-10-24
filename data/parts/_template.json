@@ -20,7 +20,7 @@
     }
   ],
   "mesh": [
-    // box: size = extents. prism: size = [top radius, height, bottom radius], sides. sphere: size = [radius, rings, 0], sides.
+    // box: size = extents. prism: [top radius, height, bottom radius], sides. sphere: [radius, rings, 0], sides. ring: [inner, outer, 0], sides (lies flat in XZ).
     { "shape": "box", "size": [0.06, 0.8, 0.01], "position": [0, 0.4, 0], "rotation": [0, 0, 0], "scale": [1, 1, 1] }
   ]
 }
