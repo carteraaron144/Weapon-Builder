@@ -39,6 +39,7 @@ public partial class BuilderSmoke : Node
     async Task Run()
     {
         await Icons();
+        MaterialsPanel();
         Check(b.RootHandle == "grip", "the shipped grip is the default handle");
         Check(b.Materials.Visible.Count == 7, $"the panel has seven materials ({b.Materials.Visible.Count})");
         Check(WeaponMaterials.Get("mithril") != WeaponMaterials.Get("steel"), "mithril is its own material, not the steel fallback");
@@ -290,6 +291,21 @@ public partial class BuilderSmoke : Node
             await Shot("palette-blades.png");
             b.Palette.CurrentTab = 0;
         }
+    }
+
+    void MaterialsPanel()
+    {
+        var ids = b.MaterialPanel.GetChildren().OfType<Button>().Select(x => x.Name.ToString()).ToList();
+        Check(ids.SequenceEqual(["bronze", "iron", "steel", "gold", "mithril", "obsidian", "wood"]),
+            $"the materials panel lists the seven materials in order ({string.Join(",", ids)})");
+        var toolbar = b.BuildButton.GetParent<Control>().GetGlobalRect();
+        var centre = GetViewport().GetVisibleRect().Size.X / 2f;
+        Check(b.MaterialPanel.GetChildren().OfType<Button>().All(x => x.GetGlobalRect().Position.X > centre
+                && !x.GetGlobalRect().Intersects(toolbar) && x.Icon != null),
+            "every swatch has an icon, sits on the right and clears the toolbar");
+        var screen = GetViewport().GetVisibleRect();
+        Check(b.MaterialPanel.GetChildren().OfType<Button>().All(x => screen.Encloses(x.GetGlobalRect())),
+            $"every swatch fits on a {screen.Size.X}x{screen.Size.Y} screen");
     }
 
     // --- steps ---

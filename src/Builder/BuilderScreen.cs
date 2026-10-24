@@ -26,6 +26,7 @@ public partial class BuilderScreen : Node3D
     public OrbitCamera Camera { get; private set; } = null!;
     public PartPalette Palette { get; private set; } = null!;
     public PartIcons Icons { get; private set; } = null!;
+    public MaterialPanel MaterialPanel { get; private set; } = null!;
     /// Finishes when every palette button has its icon.
     public Task IconsReady { get; private set; } = Task.CompletedTask;
     public DragController Drag { get; private set; } = null!;
@@ -104,6 +105,16 @@ public partial class BuilderScreen : Node3D
         ui.AddChild(Palette);
         Palette.Fill(Lib);
         Palette.PartPressed += Drag.BeginNew;
+
+        var materialsBox = new PanelContainer { Name = "Materials" };
+        materialsBox.SetAnchorsPreset(Control.LayoutPreset.RightWide);
+        materialsBox.GrowHorizontal = Control.GrowDirection.Begin;
+        materialsBox.OffsetRight = -12;
+        materialsBox.OffsetTop = 56;
+        materialsBox.OffsetBottom = -12;
+        materialsBox.AddChild(MaterialPanel = new MaterialPanel { Name = "Swatches" });
+        ui.AddChild(materialsBox);
+        MaterialPanel.Fill(Materials);
 
         var toolbar = new HBoxContainer { Name = "Toolbar" };
         toolbar.SetAnchorsPreset(Control.LayoutPreset.TopRight);
