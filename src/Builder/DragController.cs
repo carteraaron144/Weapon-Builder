@@ -33,12 +33,21 @@ public partial class DragController : Node3D
     (WeaponPart Part, Vector2 At)? pressed;                       // a part pressed but not yet dragged
     (WeaponPart Parent, string Socket, float Rotation)? origin;   // where a picked-up part came from
     string? painting;                                              // the material being dragged
+    MeshInstance3D? orb;                                           // ...shown as a ball at the cursor
 
     public bool Dragging => payload != null;
     /// True between pressing on a placed part and either dragging it or letting go.
     public bool Pressing => pressed != null;
     /// The material id being dragged from the materials panel, or null.
     public string? Painting => painting;
+    /// The ball of the dragged material that floats at the cursor while painting, or null.
+    public MeshInstance3D? Orb => orb;
+    /// Where the orb sits relative to the cursor tip, in pixels: up and to the right, clear of the part aimed at.
+    public static readonly Vector2 OrbOffset = new(22f, -22f);
+    /// The orb mesh's radius before scaling.
+    public const float OrbRadius = 0.5f;
+    /// The orb's diameter on screen, in pixels.
+    public const float OrbPixels = 40f;
     public IReadOnlyList<Target> Targets => targets;
     public Target? Snapped => snapped;
 
@@ -57,6 +66,38 @@ public partial class DragController : Node3D
         Cancel();
         screen.View.SetHovered(null);
         painting = materialId;
+        AddChild(orb = MakeOrb(materialId));
+        PlaceOrb();
+    }
+
+    /// A low-poly ball in the material, drawn over everything so the weapon and panels never hide it.
+    static MeshInstance3D MakeOrb(string materialId)
+    {
+        var material = (StandardMaterial3D)WeaponMaterials.Get(materialId).Duplicate();
+        material.NoDepthTest = true;
+        material.RenderPriority = (int)Material.RenderPriorityMax;
+        var sphere = new SphereMesh { Radius = OrbRadius, Height = OrbRadius * 2f, RadialSegments = 10, Rings = 5 };
+        return new MeshInstance3D
+        {
+            Mesh = MeshKit.FlatMesh(new() { [material] = [(sphere, Transform3D.Identity)] }),
+            MaterialOverride = material,
+            CastShadow = GeometryInstance3D.ShadowCastingSetting.Off,
+        };
+    }
+
+    /// Puts the orb just up and right of the cursor, a little in front of the camera, scaled to OrbPixels across
+    /// whatever the zoom.
+    void PlaceOrb()
+    {
+        if (orb == null)
+            return;
+        var cam = screen.Camera;
+        var at = mouse + OrbOffset;
+        var depth = Mathf.Max(cam.Near * 4f, 0.5f);
+        var centre = cam.ProjectPosition(at, depth);
+        var worldPerPixel = cam.ProjectPosition(at + Vector2.Right, depth).DistanceTo(centre);
+        orb.GlobalPosition = centre;
+        orb.Scale = Vector3.One * (OrbPixels / 2f * worldPerPixel / OrbRadius);
     }
 
     /// Picks an existing part up off the weapon (with its subtree). The root can't be picked up.
@@ -114,6 +155,8 @@ public partial class DragController : Node3D
         pressed = null;
         snapped = null;
         painting = null;
+        orb?.QueueFree();
+        orb = null;
         screen.View.ClearPreview();
         foreach (var t in targets)
             t.Marker.QueueFree();
@@ -212,6 +255,7 @@ public partial class DragController : Node3D
             var target = PaintTarget();
             screen.View.SetHovered(target);
             screen.View.Preview(PaintTargets(target, Input.IsKeyPressed(Key.Shift)), painting);
+            PlaceOrb();
             return;
         }
         if (Dragging)
