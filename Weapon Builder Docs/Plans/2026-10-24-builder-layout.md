@@ -327,3 +327,20 @@ All tasks done on `feat/builder-layout`. Core tests: 95/95. The smoke scene pass
   - iron is lighter (`#6E6E74`), so it doesn't look like obsidian;
   - gold is brighter and a little less metallic (`#FFCC3A`, 0.75 / 0.3);
   - obsidian has a purple tint and a slight sheen (`#1E1628`, 0.3 / 0.05).
+
+**Final review** (fresh reviewer): 0 critical, 1 important, 8 minor. Fixed:
+- **Painting through the UI.** Letting a swatch go over a panel painted the part hidden behind it. Panels and the toolbar now block painting.
+- **Keyboard focus on swatches** (re-graded from minor). After a click, Space could start an invisible paint that landed on the next click. Swatch and palette buttons no longer take keyboard focus.
+
+Both have smoke checks. The smoke scene has 79 checks and the core tests 95.
+
+**Deferred minors:**
+- **The load warning is misleading.** It says "Unknown material" even when the material is known but not allowed for that part. Also, a part's own default material isn't checked against its allowed tags. Both are latent, since no part restricts materials.
+- **A refused paint gives no feedback.** This is latent too.
+- **The paint preview is rebuilt every frame.** The cost is negligible.
+- **The icon queue can stop quietly:**
+  - if `PartIcons` is freed mid-render, `IconsReady` hangs;
+  - if a render throws, the remaining buttons keep their text labels.
+- **A broken or missing `materials.json` loses paint:** loading a save then resets painted parts to their defaults, with no sticky status message.
+- **Icons re-render too often:** the icon style hashes the raw `materials.json` text, so editing a comment re-renders every icon.
+- **A stray indent** at `PartIcons.Render`.
