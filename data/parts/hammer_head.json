@@ -1,0 +1,8 @@
+{ "id": "hammer_head", "name": "Hammer Head", "category": "Blades & Heads", "tags": ["head"],
+  "length": 0.1, "width": 0.22, "defaultMaterial": "iron", "sockets": [],
+  "mesh": [
+    { "shape": "box", "size": [0.05, 0.1, 0.05], "position": [0, 0.05, 0] },
+    { "shape": "box", "size": [0.16, 0.055, 0.055], "position": [0, 0.06, 0] },
+    { "shape": "box", "size": [0.03, 0.075, 0.075], "position": [0.095, 0.06, 0] },
+    { "shape": "box", "size": [0.03, 0.075, 0.075], "position": [-0.095, 0.06, 0] }
+  ] }

@@ -11,7 +11,7 @@ namespace WeaponBuilder;
 /// which starts a drag.
 public partial class PartPalette : TabContainer
 {
-    public static readonly string[] Tabs = ["Handles", "Guards", "Pommels", "Blades & Heads"];
+    public static readonly string[] Tabs = ["Handles", "Guards", "Pommels", "Blades & Heads", "Flanges"];
     public const int Columns = 3;
     public const int ButtonSize = 76;
 
@@ -45,7 +45,7 @@ public partial class PartPalette : TabContainer
             AddChild(grid);
             SetTabTooltip(GetTabCount() - 1, tab);
         }
-        AddThemeConstantOverride("icon_max_width", 34);
+        AddThemeConstantOverride("icon_max_width", 28);
     }
 
     /// Swaps a button's text for its icon.

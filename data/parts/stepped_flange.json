@@ -1,0 +1,7 @@
+{ "id": "stepped_flange", "name": "Stepped Flange", "category": "Flanges", "tags": ["flange"],
+  "length": 0.045, "width": 0.14, "defaultMaterial": "steel", "sockets": [],
+  "mesh": [
+    { "shape": "box", "size": [0.14, 0.015, 0.008], "position": [0, 0.0075, 0] },
+    { "shape": "box", "size": [0.09, 0.015, 0.008], "position": [0, 0.0225, 0] },
+    { "shape": "box", "size": [0.04, 0.015, 0.008], "position": [0, 0.0375, 0] }
+  ] }
