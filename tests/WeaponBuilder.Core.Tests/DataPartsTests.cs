@@ -7,13 +7,9 @@ public class DataPartsTests
 {
     static readonly string[] Categories = ["Handles", "Guards", "Pommels", "Blades & Heads"];
 
-    static PartLibrary LoadShipped(out List<string> errors)
+    internal static PartLibrary LoadShipped(out List<string> errors)
     {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null && !File.Exists(Path.Combine(dir.FullName, "project.godot")))
-            dir = dir.Parent;
-        Assert.NotNull(dir);
-        var files = Directory.GetFiles(Path.Combine(dir.FullName, "data", "parts"), "*.json")
+        var files = Directory.GetFiles(Path.Combine(RepoFiles.Root, "data", "parts"), "*.json")
             .Select(f => (Path.GetFileName(f), File.ReadAllText(f)));
         return PartLibrary.Load(files, out errors);
     }

@@ -1,3 +1,3 @@
 { "id": "ball_pommel", "name": "Ball Pommel", "category": "Pommels", "tags": ["pommel"],
-  "length": 0.05, "width": 0.05, "defaultMaterial": "brass", "sockets": [],
+  "length": 0.05, "width": 0.05, "defaultMaterial": "bronze", "sockets": [],
   "mesh": [ { "shape": "sphere", "size": [0.025, 3, 0], "position": [0, 0.025, 0], "sides": 6 } ] }
