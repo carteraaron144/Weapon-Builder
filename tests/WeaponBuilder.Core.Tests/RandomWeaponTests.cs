@@ -15,7 +15,7 @@ public class RandomWeaponTests
 
     static IEnumerable<int> Seeds(int n) => Enumerable.Range(0, n);
 
-    static Weapon Make(int seed, RandomOptions? options = null) => RandomWeapon.Build(Lib, new Random(seed), options);
+    static Weapon Make(int seed, RandomOptions? options = null) => RandomWeapon.Build(Lib, Materials, new Random(seed), options);
 
     /// Every part with its depth and the socket it sits on (null for the root).
     static IEnumerable<(WeaponPart Part, int Depth, SocketDef? Socket)> Walk(Weapon w)
@@ -75,12 +75,32 @@ public class RandomWeaponTests
     [Fact]
     public void HandlesOnlyLibraryGivesBareHandle()
     {
-        var w = RandomWeapon.Build(new PartLibrary([Part("h", ["handle"], 1f, 0.1f, Socket("top", ["blade"], required: true))]), new Random(1));
+        var w = RandomWeapon.Build(new PartLibrary([Part("h", ["handle"], 1f, 0.1f, Socket("top", ["blade"], required: true))]), Materials, new Random(1));
         Assert.Equal("h", w.Root.PartId);
         Assert.Empty(w.Root.Children);
     }
 
     [Fact]
     public void NoHandlesThrows() =>
-        Assert.Throws<InvalidOperationException>(() => RandomWeapon.Build(new PartLibrary([Part("b", ["blade"])]), new Random(1)));
+        Assert.Throws<InvalidOperationException>(() => RandomWeapon.Build(new PartLibrary([Part("b", ["blade"])]), Materials, new Random(1)));
+
+    static string MaterialsOf(Weapon w) => string.Join(",", Walk(w).Select(x => $"{x.Part.PartId}:{x.Part.Material}"));
+
+    [Fact]
+    public void SameSeed_GivesTheSameMaterials() =>
+        Assert.All(Seeds(20), s => Assert.Equal(MaterialsOf(Make(s)), MaterialsOf(Make(s))));
+
+    [Fact]
+    public void Materials_AreAlwaysKnown() =>
+        Assert.All(Seeds(20).SelectMany(s => Walk(Make(s))),
+            x => Assert.True(Materials.TryGet(x.Part.Material, out _) || x.Part.Material == Lib.Get(x.Part.PartId).DefaultMaterial,
+                $"{x.Part.PartId} got unknown material '{x.Part.Material}'"));
+
+    [Fact]
+    public void SomeParts_GetANonDefaultMaterial() =>
+        Assert.Contains(Seeds(20).SelectMany(s => Walk(Make(s))), x => x.Part.Material != Lib.Get(x.Part.PartId).DefaultMaterial);
+
+    [Fact]
+    public void HiddenMaterials_AreNeverPicked() =>
+        Assert.DoesNotContain(Seeds(50).SelectMany(s => Walk(Make(s))), x => x.Part.Material == "leather");
 }
