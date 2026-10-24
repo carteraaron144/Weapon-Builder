@@ -98,6 +98,7 @@ public partial class BuilderSmoke : Node
         await EdgeCases();
         await Gallery();
         await Randomize();
+        await Painting();
 
         if (outDir != null)
             await Shot("final.png");
@@ -250,6 +251,96 @@ public partial class BuilderSmoke : Node
         ClearDir(dir);
     }
 
+    async Task Painting()
+    {
+        const string dir = "user://smoke_gallery";
+        ClearDir(dir);
+        b.GalleryDir = dir;
+        b.NewWeapon();
+        var root = b.Weapon.Root;
+        b.Editor.Attach(root, "top", "straight_blade");
+        var blade = root.Children["top"];
+        b.Editor.Attach(blade, "tip", "axe_head");
+        b.Editor.Attach(root, "guard", "bar_guard");
+        b.Editor.Attach(root, "bottom", "ball_pommel");
+        b.Refresh();
+        await Reframe();
+        var axe = blade.Children["tip"];
+        var guard = root.Children["guard"];
+        var axeBefore = axe.Material;
+
+        await Paint("gold", Centre(blade));
+        Check(blade.Material == "gold" && axe.Material == axeBefore, "painting gold onto the blade paints just the blade");
+        Check(b.Status.Text.Contains("Gold"), $"...and says so (\"{b.Status.Text}\")");
+
+        var before = MaterialsOf(b.Weapon.Root);
+        await Paint("wood", EmptySpot());
+        Check(MaterialsOf(b.Weapon.Root) == before, "painting onto empty space changes nothing");
+
+        await Paint("iron", Centre(root));
+        Check(root.Material == "iron", "painting the grip (the root) paints it");
+
+        await Paint("mithril", Centre(blade), shift: true);
+        Check(blade.Material == "mithril" && axe.Material == "mithril" && guard.Material != "mithril",
+            "Shift-painting the blade paints every blade and head, and nothing else");
+
+        // The preview follows the cursor and leaves nothing behind.
+        before = MaterialsOf(b.Weapon.Root);
+        await Mouse(Swatch("obsidian"), MouseButton.Left, true);
+        await Move(Centre(blade));
+        Check(b.View.MaterialShown(blade) == WeaponMaterials.Get("obsidian"), "a swatch held over a part previews it");
+        await Move(Centre(guard));
+        Check(b.View.MaterialShown(blade) == WeaponMaterials.Get(blade.Material) && b.View.MaterialShown(guard) == WeaponMaterials.Get("obsidian"),
+            "moving to another part moves the preview with it");
+        await Move(EmptySpot());
+        await Mouse(EmptySpot(), MouseButton.Left, false);
+        Check(MaterialsOf(b.Weapon.Root) == before && b.View.MaterialShown(guard) == WeaponMaterials.Get(guard.Material),
+            "...and letting go off the weapon changes nothing");
+
+        // Interrupted paint drags leave the weapon as it was.
+        await Mouse(Swatch("gold"), MouseButton.Left, true);
+        await Move(Centre(blade));
+        b.Drag.Notification((int)Node.NotificationApplicationFocusOut);
+        await Frames(2);
+        Check(b.Drag.Painting == null && b.View.MaterialShown(blade) == WeaponMaterials.Get(blade.Material),
+            "losing focus mid-paint drops the paint and its preview");
+        await Mouse(Centre(blade), MouseButton.Left, false);
+        Check(MaterialsOf(b.Weapon.Root) == before, "...and letting go afterwards paints nothing");
+
+        await Mouse(Swatch("gold"), MouseButton.Left, true);
+        await Move(Centre(blade));
+        await PressKey(Godot.Key.Escape);
+        Check(b.Drag.Painting == null && b.View.MaterialShown(blade) == WeaponMaterials.Get(blade.Material),
+            "Escape drops a paint drag and its preview");
+        await Mouse(Centre(blade), MouseButton.Left, false);
+        Check(MaterialsOf(b.Weapon.Root) == before, "...and letting go afterwards paints nothing");
+
+        // Survives Build and Load.
+        var stem = await b.Build("Painted");
+        b.NewWeapon();
+        b.LoadFrom($"{dir}/{stem}.json");
+        await Frames(4);
+        Check(MaterialsOf(b.Weapon.Root) == before, $"materials survive Build and Load ({before})");
+
+        // Randomize mid-paint.
+        b.Randomize(7);
+        var clean = MaterialsOf(b.Weapon.Root);
+        await Reframe();
+        await Mouse(Swatch("gold"), MouseButton.Left, true);
+        await Move(Centre(b.Weapon.Root));
+        b.Randomize(7);
+        await Frames(2);
+        Check(b.Drag.Painting == null && MaterialsOf(b.Weapon.Root) == clean, "Randomize mid-paint drops the paint");
+        await Mouse(Centre(b.Weapon.Root), MouseButton.Left, false);
+        Check(MaterialsOf(b.Weapon.Root) == clean, "...and letting go afterwards paints nothing");
+
+        // Part drags still work.
+        b.NewWeapon();
+        await Palette("ball_pommel", Socket(b.Weapon.Root, "bottom"));
+        Check(At(b.Weapon.Root, "bottom") == "ball_pommel", "part drags still work after painting");
+        ClearDir(dir);
+    }
+
     static void ClearDir(string dir)
     {
         if (!DirAccess.DirExistsAbsolute(dir))
@@ -344,13 +435,32 @@ public partial class BuilderSmoke : Node
         await Frames(4);
     }
 
-    async Task Mouse(Vector2 at, MouseButton button, bool pressed)
+    /// Drags a material swatch to a screen position and lets go (with Shift held, if shift).
+    async Task Paint(string materialId, Vector2 to, bool shift = false)
+    {
+        var from = Swatch(materialId);
+        await Mouse(from, MouseButton.Left, true);
+        await Move((from + to) / 2f);
+        await Move(to);
+        await Mouse(to, MouseButton.Left, false, shift);
+        await Frames(2);
+    }
+
+    async Task PressKey(Key key)
+    {
+        Input.ParseInputEvent(new InputEventKey { Keycode = key, Pressed = true });
+        await Frames(2);
+        Input.ParseInputEvent(new InputEventKey { Keycode = key, Pressed = false });
+        await Frames(2);
+    }
+
+    async Task Mouse(Vector2 at, MouseButton button, bool pressed, bool shift = false)
     {
         Input.WarpMouse(at);
         Input.ParseInputEvent(new InputEventMouseButton
         {
             Position = at, GlobalPosition = at, ButtonIndex = button, Pressed = pressed,
-            ButtonMask = pressed ? MouseButtonMask.Left : 0,
+            ButtonMask = pressed ? MouseButtonMask.Left : 0, ShiftPressed = shift,
         });
         await Frames(4);
     }
@@ -382,6 +492,11 @@ public partial class BuilderSmoke : Node
         return b.Camera.UnprojectPosition(NumericsBridge.ToGodot(s.World).Origin);
     }
 
+    Vector2 Swatch(string materialId) => b.MaterialPanel.GetNode<Button>(materialId).GetGlobalRect().GetCenter();
+
+    /// A spot in the 3D view well away from the weapon and the panels.
+    Vector2 EmptySpot() => GetViewport().GetVisibleRect().Size * new Vector2(0.7f, 0.9f);
+
     Vector2 RootScreen() => b.Camera.UnprojectPosition(Vector3.Zero);
 
     Vector2 Centre(WeaponPart part)
@@ -398,6 +513,11 @@ public partial class BuilderSmoke : Node
 
     static string Describe(WeaponPart p) =>
         $"{p.PartId}@{p.RotationDegrees}({string.Join(",", p.Children.OrderBy(c => c.Key).Select(c => $"{c.Key}:{Describe(c.Value)}"))})";
+
+    /// Each part's path in the tree with its material, e.g. "grip:iron top:gold top/tip:steel".
+    static string MaterialsOf(WeaponPart p, string path = "") =>
+        string.Join(" ", new[] { $"{(path == "" ? p.PartId : path)}:{p.Material}" }
+            .Concat(p.Children.OrderBy(c => c.Key).Select(c => MaterialsOf(c.Value, path == "" ? c.Key : $"{path}/{c.Key}"))));
 
     void Check(bool ok, string what)
     {

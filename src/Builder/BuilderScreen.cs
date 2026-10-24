@@ -115,6 +115,7 @@ public partial class BuilderScreen : Node3D
         materialsBox.AddChild(MaterialPanel = new MaterialPanel { Name = "Swatches" });
         ui.AddChild(materialsBox);
         MaterialPanel.Fill(Materials);
+        MaterialPanel.MaterialPressed += Drag.BeginPaint;
 
         var toolbar = new HBoxContainer { Name = "Toolbar" };
         toolbar.SetAnchorsPreset(Control.LayoutPreset.TopRight);

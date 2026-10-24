@@ -13,6 +13,8 @@ public partial class WeaponView : Node3D
 
     readonly Dictionary<ulong, WeaponPart> partOfBody = new();
     readonly Dictionary<WeaponPart, MeshInstance3D> outlineOf = new();
+    readonly Dictionary<WeaponPart, MeshInstance3D> meshOf = new();
+    readonly HashSet<WeaponPart> previewed = new();
     WeaponPart? hovered;
 
     /// A ghost is see-through and can't be picked (drag previews).
@@ -31,6 +33,8 @@ public partial class WeaponView : Node3D
         }
         partOfBody.Clear();
         outlineOf.Clear();
+        meshOf.Clear();
+        previewed.Clear();
         hovered = null;
 
         Current = Layout.Compute(w, lib);
@@ -58,6 +62,7 @@ public partial class WeaponView : Node3D
             node.AddChild(body);
             partOfBody[body.GetInstanceId()] = placed.Part;
             outlineOf[placed.Part] = node.GetNode<MeshInstance3D>("Outline");
+            meshOf[placed.Part] = node.GetNode<MeshInstance3D>("Mesh");
         }
         Bounds = bounds;
     }
@@ -87,6 +92,32 @@ public partial class WeaponView : Node3D
         var collider = hit["collider"].AsGodotObject();
         return collider != null && partOfBody.TryGetValue(collider.GetInstanceId(), out var part) ? part : null;
     }
+
+    /// Shows these parts in another material (a paint preview), putting back any earlier preview first.
+    public void Preview(IEnumerable<WeaponPart> parts, string? materialId)
+    {
+        ClearPreview();
+        if (materialId == null)
+            return;
+        foreach (var part in parts)
+            if (meshOf.TryGetValue(part, out var mesh))
+            {
+                mesh.MaterialOverride = WeaponMaterials.Get(materialId);
+                previewed.Add(part);
+            }
+    }
+
+    /// Shows every previewed part in its own material again.
+    public void ClearPreview()
+    {
+        foreach (var part in previewed)
+            if (meshOf.TryGetValue(part, out var mesh))
+                mesh.MaterialOverride = WeaponMaterials.Get(part.Material);
+        previewed.Clear();
+    }
+
+    /// The material a part is drawn with right now (its own, or a preview).
+    public Material? MaterialShown(WeaponPart part) => meshOf.TryGetValue(part, out var mesh) ? mesh.MaterialOverride : null;
 
     /// Outlines one part (or none).
     public void SetHovered(WeaponPart? part)

@@ -11,6 +11,9 @@ namespace WeaponBuilder;
 /// A part on the weapon is picked up once the cursor moves DragPixels with the button held (a click leaves it).
 /// Released elsewhere over the weapon, a picked-up part goes back; released off the weapon, it's removed.
 /// Handles target the root (a swap). Parts a swap leaves without a socket are named in the status line.
+/// Painting: a material dragged from the materials panel previews on the part under the cursor (the root
+/// included; with Shift, on every part of that part's category) and is applied there on release. Escape, or losing
+/// focus, cancels any drag.
 public partial class DragController : Node3D
 {
     public const float SnapPixels = 48f;
@@ -29,10 +32,13 @@ public partial class DragController : Node3D
     Vector2 mouse;
     (WeaponPart Part, Vector2 At)? pressed;                       // a part pressed but not yet dragged
     (WeaponPart Parent, string Socket, float Rotation)? origin;   // where a picked-up part came from
+    string? painting;                                              // the material being dragged
 
     public bool Dragging => payload != null;
     /// True between pressing on a placed part and either dragging it or letting go.
     public bool Pressing => pressed != null;
+    /// The material id being dragged from the materials panel, or null.
+    public string? Painting => painting;
     public IReadOnlyList<Target> Targets => targets;
     public Target? Snapped => snapped;
 
@@ -43,6 +49,14 @@ public partial class DragController : Node3D
     {
         var def = screen.Lib.Get(partId);
         Begin(new WeaponPart(partId, def.DefaultMaterial));
+    }
+
+    /// Starts dragging a material from the panel.
+    public void BeginPaint(string materialId)
+    {
+        Cancel();
+        screen.View.SetHovered(null);
+        painting = materialId;
     }
 
     /// Picks an existing part up off the weapon (with its subtree). The root can't be picked up.
@@ -99,6 +113,8 @@ public partial class DragController : Node3D
         payload = null;
         pressed = null;
         snapped = null;
+        painting = null;
+        screen.View.ClearPreview();
         foreach (var t in targets)
             t.Marker.QueueFree();
         targets.Clear();
@@ -135,6 +151,18 @@ public partial class DragController : Node3D
             return;
         if (e is InputEventMouse m)
             mouse = m.Position;
+        if (e is InputEventKey { Pressed: true, Echo: false, Keycode: Key.Escape } && (Dragging || painting != null))
+        {
+            Abort();
+            GetViewport().SetInputAsHandled();
+            return;
+        }
+        if (painting != null)
+        {
+            if (e is InputEventMouseButton { ButtonIndex: MouseButton.Left, Pressed: false } up)
+                ReleasePaint(up.ShiftPressed || Input.IsKeyPressed(Key.Shift)); // not handled: the swatch gets its release
+            return;
+        }
         if (pressed is { } p && !Dragging)
         {
             if (e is InputEventMouseMotion motion && (motion.ButtonMask & MouseButtonMask.Left) != 0
@@ -179,6 +207,13 @@ public partial class DragController : Node3D
 
     public override void _Process(double delta)
     {
+        if (painting != null)
+        {
+            var target = screen.View.PartAt(mouse, screen.Camera);
+            screen.View.SetHovered(target);
+            screen.View.Preview(PaintTargets(target, Input.IsKeyPressed(Key.Shift)), painting);
+            return;
+        }
         if (Dragging)
         {
             UpdateGhost(); // the camera may have moved (zoom, orbit) without the mouse moving
@@ -189,6 +224,37 @@ public partial class DragController : Node3D
         var overGui = GetViewport().GuiGetHoveredControl() != null;
         var part = overGui ? null : screen.View.PartAt(mouse, screen.Camera);
         screen.View.SetHovered(part == screen.Weapon.Root ? null : part);
+    }
+
+    /// The parts a paint would land on: the part under the cursor, or with Shift every part of its category, keeping
+    /// only those that allow the material.
+    List<WeaponPart> PaintTargets(WeaponPart? part, bool wholeCategory)
+    {
+        if (part == null || painting == null || !screen.Materials.TryGet(painting, out var material))
+            return [];
+        var category = screen.Lib.Get(part.PartId).Category;
+        var parts = wholeCategory
+            ? screen.View.Current!.Parts.Where(p => p.Def.Category == category).Select(p => p.Part)
+            : [part];
+        return parts.Where(p => Fitting.AllowsMaterial(screen.Lib.Get(p.PartId), material)).ToList();
+    }
+
+    void ReleasePaint(bool wholeCategory)
+    {
+        var id = painting!;
+        var part = screen.View.PartAt(mouse, screen.Camera);
+        Cancel();
+        if (part == null || !screen.Materials.TryGet(id, out var material))
+            return;
+        var def = screen.Lib.Get(part.PartId);
+        if (wholeCategory)
+        {
+            if (screen.Editor.SetMaterialForCategory(screen.Weapon, def.Category, material) > 0)
+                screen.ShowStatus($"Painted every {def.Category} part {material.Name}");
+        }
+        else if (screen.Editor.SetMaterial(part, material))
+            screen.ShowStatus($"Painted {def.Name} {material.Name}");
+        screen.Refresh();
     }
 
     void Spin()
