@@ -1,0 +1,10 @@
+// A thick haft with an axe socket on its +X side near the top (required, so Randomize always adds something there).
+// The top takes an optional spike or blade.
+{ "id": "battleaxe_haft", "name": "Battleaxe Haft", "category": "Handles", "tags": ["handle"],
+  "length": 1.2, "width": 0.045, "defaultMaterial": "wood",
+  "sockets": [
+    { "name": "side", "position": [0.019, 1.0, 0], "rotation": [0, 0, -90], "required": true, "accepts": ["weapon"], "length": 0.3, "width": 0.38, "rotationStep": 0 },
+    { "name": "top", "position": [0, 1.2, 0], "accepts": ["weapon"], "length": 0.25, "width": 0.08, "rotationStep": 90 },
+    { "name": "bottom", "position": [0, 0, 0], "rotation": [0, 0, 180], "accepts": ["pommel"], "length": 0.06, "width": 0.05, "rotationStep": 90 }
+  ],
+  "mesh": [ { "shape": "prism", "size": [0.021, 1.2, 0.023], "position": [0, 0.6, 0], "sides": 6 } ] }

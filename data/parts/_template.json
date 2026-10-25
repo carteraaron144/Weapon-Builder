@@ -3,8 +3,8 @@
 {
   "id": "example",                 // unique
   "name": "Example Part",          // shown in the palette
-  "category": "Blades & Heads",    // palette tab: Handles, Guards, Pommels, Blades & Heads, Flanges
-  "tags": ["blade"],               // what it is; a socket accepts it if they share a tag (roots need "handle")
+  "category": "Blades & Heads",    // palette tab: Handles, Guards, Pommels, Blades & Heads
+  "tags": ["blade", "weapon"],     // what it is; a socket accepts it if they share a tag (roots need "handle"; blades, heads and flanges add "weapon")
   "length": 0.8,                   // size along +Y, for fitting to sockets
   "width": 0.06,                   // widest size across, for fitting to sockets
   "defaultMaterial": "steel",      // an id from data/materials.json (bronze, iron, steel, gold, mithril, obsidian, wood, leather)
@@ -13,7 +13,7 @@
       "name": "tip",               // unique on this part
       "position": [0, 0.8, 0],
       "rotation": [0, 0, 0],       // the socket's +Y points away from this part
-      "accepts": ["head"],         // at least one tag
+      "accepts": ["weapon"],       // at least one tag; weapon sockets take "weapon", guards "crossguard", pommels "pommel"
       "length": 0.3, "width": 0.1, // the size a part on it is scaled to fit (tighter axis wins, 0.25x-4x)
       "required": false,
       "rotationStep": 90           // R spins a part on this socket by this much; 0 = no spin
