@@ -1,4 +1,4 @@
-{ "id": "spear_head", "name": "Spear Head", "category": "Blades & Heads", "tags": ["head", "blade"],
+{ "id": "spear_head", "name": "Spear Head", "category": "Blades & Heads", "tags": ["head", "blade", "weapon"],
   "length": 0.3, "width": 0.06, "defaultMaterial": "iron", "sockets": [],
   "mesh": [
     { "shape": "prism", "size": [0.012, 0.08, 0.016], "position": [0, 0.04, 0], "sides": 6 },

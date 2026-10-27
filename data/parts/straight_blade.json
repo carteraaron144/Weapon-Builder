@@ -1,7 +1,7 @@
-{ "id": "straight_blade", "name": "Straight Blade", "category": "Blades & Heads", "tags": ["blade"],
+{ "id": "straight_blade", "name": "Straight Blade", "category": "Blades & Heads", "tags": ["blade", "weapon"],
   "length": 0.85, "width": 0.05, "defaultMaterial": "steel",
   "sockets": [
-    { "name": "tip", "position": [0, 0.85, 0], "accepts": ["head"], "length": 0.15, "width": 0.1, "rotationStep": 90 }
+    { "name": "tip", "position": [0, 0.85, 0], "accepts": ["weapon"], "length": 0.15, "width": 0.1, "rotationStep": 90 }
   ],
   "mesh": [
     { "shape": "box", "size": [0.05, 0.7, 0.008], "position": [0, 0.35, 0] },

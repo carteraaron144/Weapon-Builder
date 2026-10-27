@@ -1,4 +1,4 @@
-{ "id": "axe_head", "name": "Axe Head", "category": "Blades & Heads", "tags": ["head"],
+{ "id": "axe_head", "name": "Axe Head", "category": "Blades & Heads", "tags": ["head", "weapon"],
   "length": 0.16, "width": 0.18, "defaultMaterial": "iron", "sockets": [],
   "mesh": [
     { "shape": "box", "size": [0.04, 0.12, 0.035], "position": [0, 0.06, 0] },

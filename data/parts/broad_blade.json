@@ -1,4 +1,4 @@
-{ "id": "broad_blade", "name": "Broad Blade", "category": "Blades & Heads", "tags": ["blade"],
+{ "id": "broad_blade", "name": "Broad Blade", "category": "Blades & Heads", "tags": ["blade", "weapon"],
   "length": 0.95, "width": 0.09, "defaultMaterial": "steel", "sockets": [],
   "mesh": [
     { "shape": "box", "size": [0.09, 0.75, 0.01], "position": [0, 0.375, 0] },

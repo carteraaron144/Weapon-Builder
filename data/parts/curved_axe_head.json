@@ -1,0 +1,14 @@
+// Made for a haft's side socket: it grows outward along +Y, its crescent edge runs along X (up and down the
+// haft) and it is thin in Z. The horns sweep back toward the haft. Every weapon socket takes it (the "weapon" tag); it is shaped for side sockets.
+{ "id": "curved_axe_head", "name": "Curved Axe Head", "category": "Blades & Heads", "tags": ["axe", "weapon"],
+  "length": 0.23, "width": 0.38, "defaultMaterial": "iron", "sockets": [],
+  "mesh": [
+    { "shape": "box", "size": [0.1, 0.06, 0.04], "position": [0, 0.01, 0] },
+    { "shape": "box", "size": [0.07, 0.1, 0.014], "position": [0, 0.09, 0] },
+    { "shape": "box", "size": [0.16, 0.05, 0.012], "position": [0, 0.16, 0] },
+    { "shape": "box", "size": [0.14, 0.04, 0.008], "position": [0, 0.2, 0] },
+    { "shape": "box", "size": [0.12, 0.04, 0.008], "position": [0.112, 0.17, 0], "rotation": [0, 0, -30] },
+    { "shape": "box", "size": [0.12, 0.04, 0.008], "position": [-0.112, 0.17, 0], "rotation": [0, 0, 30] },
+    { "shape": "box", "size": [0.06, 0.03, 0.008], "position": [0.181, 0.115, 0], "rotation": [0, 0, -55] },
+    { "shape": "box", "size": [0.06, 0.03, 0.008], "position": [-0.181, 0.115, 0], "rotation": [0, 0, 55] }
+  ] }

@@ -1,0 +1,11 @@
+// A longer, thicker haft with axe sockets on opposite sides near the top, for a double-bitted axe.
+// The second side is the first turned 180 degrees about the haft, so one head mirrors the other.
+{ "id": "great_axe_haft", "name": "Great Axe Haft", "category": "Handles", "tags": ["handle"],
+  "length": 1.6, "width": 0.055, "defaultMaterial": "wood",
+  "sockets": [
+    { "name": "side_right", "position": [0.023, 1.35, 0], "rotation": [0, 0, -90], "required": true, "accepts": ["weapon"], "length": 0.34, "width": 0.44, "rotationStep": 0 },
+    { "name": "side_left", "position": [-0.023, 1.35, 0], "rotation": [0, 180, -90], "required": true, "accepts": ["weapon"], "length": 0.34, "width": 0.44, "rotationStep": 0 },
+    { "name": "top", "position": [0, 1.6, 0], "accepts": ["weapon"], "length": 0.3, "width": 0.1, "rotationStep": 90 },
+    { "name": "bottom", "position": [0, 0, 0], "rotation": [0, 0, 180], "accepts": ["pommel"], "length": 0.07, "width": 0.06, "rotationStep": 90 }
+  ],
+  "mesh": [ { "shape": "prism", "size": [0.025, 1.6, 0.028], "position": [0, 0.8, 0], "sides": 6 } ] }
